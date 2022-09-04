@@ -1,2 +1,3 @@
-# how-to-train-your-robot
-You're probably looking for [this website](https://brandonrohrer.com/httyr).
+# How to Train Your Robot
+
+You're probably looking for [the book landing page](https://brandonrohrer.com/httyr).
