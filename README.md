@@ -1,5 +1,3 @@
-# how-to-train-your-robot
-Content, code, and resources for the book How to Train Your Robot.
+# How to Train Your Robot
 
-
-The [website](https://brandonrohrer.com/httyr).
+You're probably looking for [the book landing page](https://brandonrohrer.com/httyr).
