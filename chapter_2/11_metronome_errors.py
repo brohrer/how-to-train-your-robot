@@ -51,8 +51,6 @@ for error in errors:
         linewidth=.5,
         solid_capstyle="round",
     )
-# ax.set_xlim(10, 10.5)
-
 
 ax.set_xlabel("Error (ms)")
 ax.set_ylabel("Count")

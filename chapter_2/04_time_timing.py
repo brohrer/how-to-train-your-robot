@@ -10,7 +10,7 @@ for i_iteration in range(n_iterations):
     elapsed_time = end_time - start_time
     elapsed_times[i_iteration] = elapsed_time
 
-average_time_us = np.mean(elapsed_times) # * 1e6
+average_time_us = np.mean(elapsed_times) * 1e6
 print(f"Average time: {average_time_us:.06} us")
 for time in elapsed_times[:120]:
     print(time * 1e6)

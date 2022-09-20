@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 n_iterations = 1000
-# n_bins = 50
 n_bins = np.arange(10, 10.5, .01)
 sleep_duration = .01
 
@@ -38,7 +37,6 @@ for sleep_time in sleep_times:
         solid_capstyle="round",
     )
 ax.set_xlim(10, 10.5)
-
 
 ax.set_xlabel("Actual time (ms)")
 ax.set_ylabel("Count")
