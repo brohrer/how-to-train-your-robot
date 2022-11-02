@@ -71,12 +71,12 @@ def generate_trajectory():
     pi = np.pi
     key_sequence = [
         [-5, 0, pi * .3, 0],
-        [3, 4, pi * .3, 48],
-        [3, 4, pi * .95, 32],
-        [5, -7, pi * .95, 54],
-        [5, -7, pi * 1.7, 32],
-        [-5, 0, pi * 1.7, 39],
-        [-5, 0, pi * 2.3, 32],
+        [3, 4, pi * .3, 30],
+        [3, 4, pi * .95, 18],
+        [5, -7, pi * .95, 29],
+        [5, -7, pi * 1.7, 17],
+        [-5, 0, pi * 1.7, 33],
+        [-5, 0, pi * 2.3, 19],
         [-5, 0, pi * .3, 1],
     ]
     x = [key_sequence[0][0]]
@@ -88,30 +88,33 @@ def generate_trajectory():
         next_point = key_sequence[i_key + 1]
         dt = next_point[3]
 
-        # Constant velocity
-        # x += list(np.linspace(key_point[0], next_point[0], dt))
-        # y += list(np.linspace(key_point[1], next_point[1], dt))
-        # theta += list(np.linspace(key_point[2], next_point[2], dt))
+        # One of ["constant", "triangle", "min_jerk"]
+        velocity_profile = "min_jerk"
+        if velocity_profile == "constant":
+            x += list(np.linspace(key_point[0], next_point[0], dt))
+            y += list(np.linspace(key_point[1], next_point[1], dt))
+            theta += list(np.linspace(key_point[2], next_point[2], dt))
 
-        # Triangle velocity
-        dx = next_point[0] - key_point[0]
-        dy = next_point[1] - key_point[1]
-        dtheta = next_point[2] - key_point[2]
-        tri = np.minimum(np.cumsum(np.ones(dt)), np.cumsum(np.ones(dt))[::-1])
-        tri *= 1 / np.sum(tri)
-        x += list(x[-1] + np.cumsum(tri * dx))
-        y += list(y[-1] + np.cumsum(tri * dy))
-        theta += list(theta[-1] + np.cumsum(tri * dtheta))
+        if velocity_profile == "triangle":
+            dx = next_point[0] - key_point[0]
+            dy = next_point[1] - key_point[1]
+            dtheta = next_point[2] - key_point[2]
+            tri = np.minimum(np.cumsum(np.ones(dt)), np.cumsum(np.ones(dt))[::-1])
+            tri *= 1 / np.sum(tri)
+            x += list(x[-1] + np.cumsum(tri * dx))
+            y += list(y[-1] + np.cumsum(tri * dy))
+            theta += list(theta[-1] + np.cumsum(tri * dtheta))
 
-        # Smooth (minimum-jerk) velocity
-        dx = next_point[0] - key_point[0]
-        dy = next_point[1] - key_point[1]
-        dtheta = next_point[2] - key_point[2]
-        tri = np.minimum(np.cumsum(np.ones(dt)), np.cumsum(np.ones(dt))[::-1])
-        tri *= 1 / np.sum(tri)
-        x += list(x[-1] + np.cumsum(tri * dx))
-        y += list(y[-1] + np.cumsum(tri * dy))
-        theta += list(theta[-1] + np.cumsum(tri * dtheta))
+        if velocity_profile == "min_jerk":
+            dx = next_point[0] - key_point[0]
+            dy = next_point[1] - key_point[1]
+            dtheta = next_point[2] - key_point[2]
+            t = np.cumsum(np.ones(dt)) / dt
+            min_j = t ** 2 - 2 * t ** 3 + t ** 4
+            min_j *= 1 / (np.sum(min_j) + 1e-6)
+            x += list(x[-1] + np.cumsum(min_j * dx))
+            y += list(y[-1] + np.cumsum(min_j * dy))
+            theta += list(theta[-1] + np.cumsum(min_j * dtheta))
 
     x = np.array(x)
     y = np.array(y)
