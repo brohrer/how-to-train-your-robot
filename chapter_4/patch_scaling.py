@@ -35,7 +35,8 @@ def draw_patch(path):
 def pulse_patch(patch, path, i):
     theta = i / 7
     scale = 3 + 0.6 * (np.sin(theta) + 0.4 * np.sin(3 * theta))
-    patch.set_xy(path * scale)
+    scaled_path = path * scale
+    patch.set_xy(scaled_path)
 
 
 def save_path():

@@ -38,30 +38,49 @@ def initialize_animation(path):
     return fig, patch
 
 
-def step_animation(patch, base_path, i):
+def step_animation(patch, path, i):
+    """
+    Handle scaling, rotation, and translation of the patch at each time step.
+    """
+    # Step 1: Anchoring
+    # Move the path so that the anchor sits at (0, 0)
+    anchor = np.array([[0, 1]])
+    anchored_path = path - anchor
 
-    path = np.copy(base_path)
-    theta = i / 10
-    # pendulum angle
-    angle = 0.5 * np.sin(theta)
-
-    dy_pre = -1
-    dy_post = 1 + 20 * (1 - np.cos(angle))
+    # Step 2: Scaling
     scale = 2.5
+    scaled_path = anchored_path * scale
 
-    # Rotation transformation
+    # Step 3: Rotation
+    # `theta` tracks the progress through the cyclical motion.
+    # Every time `theta` reaches a multiple of 2 * pi
+    # the cycle will start over.
+    theta = i / 10
+    # `angle` is the actual pendulum angle, measured as a deviation from
+    # the original position.
+    angle = 0.5 * np.sin(theta)
+    # The rotation transformation matrix
     rotation = np.array(
         [
-            [np.cos(angle), -np.sin(angle)],
-            [np.sin(angle), np.cos(angle)],
+            [np.cos(angle), np.sin(angle)],
+            [-np.sin(angle), np.cos(angle)],
         ]
     )
+    rotated_path = scaled_path @ rotation
 
-    path[:, 1] = path[:, 1] + dy_pre
-    path = scale * path @ rotation
-    path[:, 1] = path[:, 1] + dy_post
+    # Step 4: Translation
+    x_translation = 0
+    # Re-use `angle` here to get a cyclical up-and-down translation
+    # that is in sync with the rotation.
+    y_translation = 20 * (1 - np.cos(angle))
+    translation = np.array([[x_translation, y_translation]])
+    translated_path = rotated_path + translation
 
-    patch.set_xy(path)
+    # Step 5: De-anchoring
+    # Undo step 1, so the original position is restored.
+    transformed_path = translated_path + anchor
+
+    patch.set_xy(transformed_path)
 
 
 def save_path():

@@ -70,14 +70,14 @@ def initialize_animation(path):
 def generate_trajectory():
     pi = np.pi
     key_sequence = [
-        [-5, 0, pi * .3, 0],
-        [3, 4, pi * .3, 30],
-        [3, 4, pi * .95, 18],
-        [5, -7, pi * .95, 29],
-        [5, -7, pi * 1.7, 17],
-        [-5, 0, pi * 1.7, 33],
-        [-5, 0, pi * 2.3, 19],
-        [-5, 0, pi * .3, 1],
+        [-5, 0, pi * 1.7, 0],
+        [3, 4, pi * 1.7, 30],
+        [3, 4, pi * 1.05, 18],
+        [5, -7, pi * 1.05, 29],
+        [5, -7, pi * .3, 17],
+        [-5, 0, pi * .3, 33],
+        [-5, 0, pi * -.3, 19],
+        [-5, 0, pi * 1.7, 1],
     ]
     x = [key_sequence[0][0]]
     y = [key_sequence[0][1]]
@@ -99,7 +99,9 @@ def generate_trajectory():
             dx = next_point[0] - key_point[0]
             dy = next_point[1] - key_point[1]
             dtheta = next_point[2] - key_point[2]
-            tri = np.minimum(np.cumsum(np.ones(dt)), np.cumsum(np.ones(dt))[::-1])
+            tri = np.minimum(
+                np.cumsum(np.ones(dt)),
+                np.cumsum(np.ones(dt))[::-1])
             tri *= 1 / np.sum(tri)
             x += list(x[-1] + np.cumsum(tri * dx))
             y += list(y[-1] + np.cumsum(tri * dy))
@@ -124,22 +126,16 @@ def generate_trajectory():
 
 
 def step_animation(patch, base_path, x, y, theta, i):
-
     j = i % x.size
-    path = np.copy(base_path)
     scale = .4
-
     rotation = np.array(
         [
-            [np.cos(theta[j]), -np.sin(theta[j])],
-            [np.sin(theta[j]), np.cos(theta[j])],
+            [np.cos(theta[j]), np.sin(theta[j])],
+            [-np.sin(theta[j]), np.cos(theta[j])],
         ]
     )
-
     translation = np.array([[x[j], y[j]]])
-
-    path = scale * path @ rotation + translation
-
+    path = scale * base_path @ rotation + translation
     patch.set_xy(path)
 
 
