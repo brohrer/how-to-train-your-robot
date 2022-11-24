@@ -52,14 +52,9 @@ def initialize_animation(path):
         x = np.random.sample() * 20 - 10
         y = np.random.sample() * 20 - 10
         marker = np.random.choice(markers)
-        size = np.random.randint(3) + .5
+        size = np.random.randint(3) + 0.5
         color = np.random.choice([light_blue, light_gray])
-        ax.plot(
-            x, y,
-            marker=marker,
-            markersize=size,
-            color=color,
-            zorder=0)
+        ax.plot(x, y, marker=marker, markersize=size, color=color, zorder=0)
 
     plt.ion()
     plt.show()
@@ -74,9 +69,9 @@ def generate_trajectory():
         [3, 4, pi * 1.7, 30],
         [3, 4, pi * 1.05, 18],
         [5, -7, pi * 1.05, 29],
-        [5, -7, pi * .3, 17],
-        [-5, 0, pi * .3, 33],
-        [-5, 0, pi * -.3, 19],
+        [5, -7, pi * 0.3, 17],
+        [-5, 0, pi * 0.3, 33],
+        [-5, 0, pi * -0.3, 19],
         [-5, 0, pi * 1.7, 1],
     ]
     x = [key_sequence[0][0]]
@@ -88,7 +83,7 @@ def generate_trajectory():
         next_point = key_sequence[i_key + 1]
         dt = next_point[3]
 
-        # One of ["constant", "triangle", "min_jerk"]
+        # One of ["constant", "triangle", "min_jerk", "logit_normal"]
         velocity_profile = "min_jerk"
         if velocity_profile == "constant":
             x += list(np.linspace(key_point[0], next_point[0], dt))
@@ -99,9 +94,7 @@ def generate_trajectory():
             dx = next_point[0] - key_point[0]
             dy = next_point[1] - key_point[1]
             dtheta = next_point[2] - key_point[2]
-            tri = np.minimum(
-                np.cumsum(np.ones(dt)),
-                np.cumsum(np.ones(dt))[::-1])
+            tri = np.minimum(np.cumsum(np.ones(dt)), np.cumsum(np.ones(dt))[::-1])
             tri *= 1 / np.sum(tri)
             x += list(x[-1] + np.cumsum(tri * dx))
             y += list(y[-1] + np.cumsum(tri * dy))
@@ -112,11 +105,28 @@ def generate_trajectory():
             dy = next_point[1] - key_point[1]
             dtheta = next_point[2] - key_point[2]
             t = np.cumsum(np.ones(dt)) / dt
-            min_j = t ** 2 - 2 * t ** 3 + t ** 4
+            min_j = t**2 - 2 * t**3 + t**4
             min_j *= 1 / (np.sum(min_j) + 1e-6)
             x += list(x[-1] + np.cumsum(min_j * dx))
             y += list(y[-1] + np.cumsum(min_j * dy))
             theta += list(theta[-1] + np.cumsum(min_j * dtheta))
+
+        if velocity_profile == "logit_normal":
+            dx = next_point[0] - key_point[0]
+            dy = next_point[1] - key_point[1]
+            dtheta = next_point[2] - key_point[2]
+            mu = np.random.normal(0, 0.2)
+            sigma = np.random.normal(0.8, 0.1)
+            t = np.linspace(1e-6, 1 - 1e-6, dt)
+            logit_norm = (
+                1
+                / (t * (1 - t))
+                * np.exp(-1 * (np.log(t / (1 - t)) - mu) ** 2 / (2 * sigma**2))
+            )
+            logit_norm *= 1 / (np.sum(logit_norm) + 1e-6)
+            x += list(x[-1] + np.cumsum(logit_norm * dx))
+            y += list(y[-1] + np.cumsum(logit_norm * dy))
+            theta += list(theta[-1] + np.cumsum(logit_norm * dtheta))
 
     x = np.array(x)
     y = np.array(y)
@@ -127,7 +137,7 @@ def generate_trajectory():
 
 def step_animation(patch, base_path, x, y, theta, i):
     j = i % x.size
-    scale = .4
+    scale = 0.4
     rotation = np.array(
         [
             [np.cos(theta[j]), np.sin(theta[j])],
