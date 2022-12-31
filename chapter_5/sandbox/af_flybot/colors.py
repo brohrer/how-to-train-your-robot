@@ -1,0 +1,8 @@
+EYE_BLUE = "#3a98d4"
+MASK_BLACK = "#272221"
+BODY_EGGSHELL = "#f9efcf"
+DESERT_SKY = "#f3c8a7"
+DUST_TAN = "#dbbd86"
+LIGHT_BROWN = "#c7804f"
+BROWN = "#7c4c2b"
+SHADOW = "#2c2c29"
