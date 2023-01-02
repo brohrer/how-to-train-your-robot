@@ -11,8 +11,10 @@ from flybot_viz import BotViz
 from ground_viz import GroundViz
 import colors
 import config
+
 try:
     import convert_svg
+
     convert = True
 except ModuleNotFoundError:
     convert = False

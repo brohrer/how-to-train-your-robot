@@ -4,6 +4,7 @@ try:
     from svg.path import parse_path
     from svg.path.path import Line, CubicBezier, QuadraticBezier, Arc, Move
     import xml.etree.ElementTree as ET
+
     IMPORT_SUCCESS = True
 except ModuleNotFoundError:
     IMPORT_SUCCESS = False
