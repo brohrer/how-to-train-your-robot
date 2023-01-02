@@ -11,7 +11,11 @@ from flybot_viz import BotViz
 from ground_viz import GroundViz
 import colors
 import config
-import convert_svg
+try:
+    import convert_svg
+    convert = True
+except ModuleNotFoundError:
+    convert = False
 
 FIG_HEIGHT = 6  # inches
 FIG_WIDTH = 8  # inches

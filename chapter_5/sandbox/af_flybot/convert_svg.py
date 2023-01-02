@@ -1,7 +1,12 @@
 import numpy as np
-from svg.path import parse_path
-from svg.path.path import Line, CubicBezier, QuadraticBezier, Arc, Move
-import xml.etree.ElementTree as ET
+
+try:
+    from svg.path import parse_path
+    from svg.path.path import Line, CubicBezier, QuadraticBezier, Arc, Move
+    import xml.etree.ElementTree as ET
+    IMPORT_SUCCESS = True
+except ModuleNotFoundError:
+    IMPORT_SUCCESS = False
 
 
 VERBOSE = False
@@ -11,6 +16,9 @@ MAX_POINTS = 72
 
 
 def convert(svg_filename, ids):
+    if not IMPORT_SUCCESS:
+        return
+
     tree = ET.parse(svg_filename)
     root = tree.getroot()
 
