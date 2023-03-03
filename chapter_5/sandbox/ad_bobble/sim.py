@@ -1,9 +1,11 @@
 import json
 import logging
-from httyrtools import logging_setup
+import logging_setup
 import time
 from pacemaker import Pacemaker
+import config
 from grogu import Grogu
+from damper import Damper
 from spring import Spring
 
 CLOCK_FREQ = 1000  # Hertz
@@ -30,15 +32,25 @@ class Simulation:
     def __init__(self):
         self.grogu = Grogu(
             clock_period=CLOCK_PERIOD,
+            x=config.BOBBLE_TOP_X,
+            y=config.BOBBLE_TOP_Y,
         )
         self.spring = Spring(
             clock_period=CLOCK_PERIOD,
-            x_anchor=4,
-            y_anchor=0.5,
-            x_end=4,
-            y_end=3,
-            unstretched_length=2,
-            stiffness=10,
+            x_anchor=config.BOBBLE_BASE_X,
+            y_anchor=config.BOBBLE_BASE_Y,
+            x_end=config.BOBBLE_TOP_X,
+            y_end=config.BOBBLE_TOP_Y,
+            unstretched_length=config.UNSTRETECHED_LENGTH,
+            stiffness=config.STIFFNESS,
+        )
+        self.damper = Damper(
+            clock_period=CLOCK_PERIOD,
+            x_anchor=config.BOBBLE_BASE_X,
+            y_anchor=config.BOBBLE_BASE_Y,
+            x_end=config.BOBBLE_TOP_X,
+            y_end=config.BOBBLE_TOP_Y,
+            damping=config.DAMPING,
         )
 
     def step(self):
@@ -50,6 +62,7 @@ class Simulation:
     def get_state(self):
         return {
             "grogu": self.grogu.get_state(),
+            "damper": self.damper.get_state(),
             "spring": self.spring.get_state(),
         }
 
@@ -58,11 +71,22 @@ class Simulation:
         Find the force of the spring acting on the bobblehead
         in the vertical direction
         """
+        self.grogu.fx = 0
+        self.grogu.fy = 0
+
+        self.damper.calculate_forces()
+        self.grogu.fx += self.damper.fx
+        self.grogu.fy += self.damper.fy
+
         self.spring.calculate_forces()
-        self.grogu.fx = self.spring.fx
-        self.grogu.fy = self.spring.fy
+        self.grogu.fx += self.spring.fx
+        self.grogu.fy += self.spring.fy
 
     def update_positions(self):
         self.grogu.update_position()
+
+        self.damper.x_end = self.grogu.x
+        self.damper.y_end = self.grogu.y
+
         self.spring.x_end = self.grogu.x
         self.spring.y_end = self.grogu.y
