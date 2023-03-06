@@ -1,9 +1,9 @@
 import logging
 
 # Environment
-N_PEG_ROWS = 4
+N_PEG_ROWS = 6
 N_PEG_COLS = 40
-PEG_RADIUS = 0.013
+PEG_RADIUS = 0.022
 PEG_EDGE_SPACING = 0.06
 PEG_TOP_SPACING = 0.5
 PEG_BOTTOM_SPACING = 5
@@ -22,8 +22,20 @@ FIG_HEIGHT = (
     + PEG_BOTTOM_SPACING
     + PEG_TOP_SPACING
 )
-FLOOR_DROP = FIG_WIDTH / 1.1
+FLOOR_DROP = FIG_WIDTH / 1.5
 FLOOR_OFFSET = 0.05
+
+# [x, y, radius] of static features
+FEATURES = [
+    [FIG_WIDTH * 0.5, FIG_HEIGHT * 0.16, FIG_WIDTH * 0.2],
+    [FIG_WIDTH * 0.37, FIG_HEIGHT * 0.21, FIG_WIDTH * 0.1],
+    [FIG_WIDTH * 0.32, FIG_HEIGHT * 0.24, FIG_WIDTH * 0.05],
+    [FIG_WIDTH * 0.29, FIG_HEIGHT * 0.25, FIG_WIDTH * 0.03],
+    [FIG_WIDTH * 0.27, FIG_HEIGHT * 0.26, FIG_WIDTH * 0.015],
+    [FIG_WIDTH, FIG_HEIGHT * 0.2, FIG_WIDTH * 0.42],
+    [FIG_WIDTH * 0.26, FIG_HEIGHT * -0.03, FIG_WIDTH * 0.21],
+]
+
 FIG_SCALE = 1.5
 
 GRAVITY = -3.0  # -9.8  # m / s^2
@@ -31,15 +43,18 @@ GRAVITY = -3.0  # -9.8  # m / s^2
 # Appearance
 BOARD_COLOR = "#222222"
 PEG_COLOR = "#2EA3F2"
+GROUND_COLOR = "#404243"
 
 # Mechanical properties
-PEG_STIFFNESS = 1e3
+PEG_STIFFNESS = 1e4
 DAMPING = 1
 
+SPEED_LIMIT = 2.5
+
 # Time control
-CLOCK_FREQ_SIM = 1000  # Hertz
+CLOCK_FREQ_SIM = 500  # Hertz
 CLOCK_PERIOD_SIM = 1 / float(CLOCK_FREQ_SIM)
-CLOCK_FREQ_VIZ = 24  # Hertz
+CLOCK_FREQ_VIZ = 30  # Hertz
 
 # Logging settings
 LOGGING_LEVEL_SIM = logging.INFO

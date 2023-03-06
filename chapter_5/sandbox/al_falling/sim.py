@@ -19,7 +19,9 @@ def run(q):
     # Once per frame might lead to lost-frame glitches, which could
     # be noticeable.
     steps_per_q_update = int(
-        config.CLOCK_FREQ_SIM / (2 * config.CLOCK_FREQ_VIZ)
+        config.CLOCK_FREQ_SIM
+        / (1 * config.CLOCK_FREQ_VIZ)
+        # config.CLOCK_FREQ_SIM / (2 * config.CLOCK_FREQ_VIZ)
     )
     steps_since_q_update = 0
 
@@ -32,7 +34,7 @@ def run(q):
         if overtime > config.CLOCK_PERIOD_SIM * 0.5:
             i_over += 1
             print(
-                f"over {overtime / config.CLOCK_PERIOD_SIM}"
+                f"sim over {overtime / config.CLOCK_PERIOD_SIM}"
                 + f"  {i_over / i_total}"
             )
 
@@ -99,6 +101,15 @@ class Simulation:
                     y=peg_y,
                 )
                 self.peg_state[i_peg] = {"x": peg_x, "y": peg_y}
+
+        self.i_first_feature = i_peg + 1
+        for f in config.FEATURES:
+            self.add_disc(
+                k=config.PEG_STIFFNESS,
+                r=f[2],
+                x=f[0],
+                y=f[1],
+            )
 
         # Add floor
         self.add_wall(
@@ -196,7 +207,7 @@ class Simulation:
         }
 
     def update_peg_state(self):
-        for i_peg in range(self.n_discs):
+        for i_peg in range(self.i_first_feature):
             peg_x = self.x[i_peg]
             peg_y = self.y[i_peg]
             self.peg_state[i_peg] = {"x": peg_x, "y": peg_y}
@@ -273,6 +284,15 @@ class Simulation:
         ay = self.fy_disc / self.m
         self.vx += config.CLOCK_PERIOD_SIM * ax
         self.vy += config.CLOCK_PERIOD_SIM * ay
+
+        self.vx[self.i_first_feature :] = 0
+        self.vy[self.i_first_feature :] = 0
+
+        self.vx = np.maximum(self.vx, -config.SPEED_LIMIT)
+        self.vx = np.minimum(self.vx, config.SPEED_LIMIT)
+        self.vy = np.maximum(self.vy, -config.SPEED_LIMIT)
+        self.vy = np.minimum(self.vy, config.SPEED_LIMIT)
+
         self.x += config.CLOCK_PERIOD_SIM * self.vx
         self.y += config.CLOCK_PERIOD_SIM * self.vy
 

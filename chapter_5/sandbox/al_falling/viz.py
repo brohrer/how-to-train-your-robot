@@ -16,6 +16,8 @@ def run(q):
     ts = None
     state = None
 
+    i_over = 0.0
+    i_total = 0.0
     while True:
         overtime = pacemaker.beat()
         if overtime > clock_period:
@@ -24,6 +26,14 @@ def run(q):
             # If the visualization is running behind
             # skip this frame to help catch up.
             continue
+
+        i_total += 1
+        if overtime > config.CLOCK_PERIOD_SIM * 0.5:
+            i_over += 1
+            print(
+                f"viz over {overtime / config.CLOCK_PERIOD_SIM}"
+                + f"  {i_over / i_total}"
+            )
 
         while not q.empty():
             ts, state = q.get()
@@ -44,6 +54,42 @@ class Frame:
         self.ax.set_facecolor(config.BOARD_COLOR)
         self.ax.set_xlim(0, config.FIG_WIDTH)
         self.ax.set_ylim(0, config.FIG_HEIGHT)
+
+        slope_path = np.array(
+            [
+                [0, 0],
+                [0, config.FLOOR_OFFSET],
+                [config.FIG_WIDTH, config.FLOOR_OFFSET + config.FLOOR_DROP],
+                [config.FIG_WIDTH, 0],
+            ]
+        )
+        self.ax.add_patch(
+            patches.Polygon(
+                slope_path,
+                facecolor=config.GROUND_COLOR,
+                edgecolor="none",
+                zorder=0,
+            )
+        )
+
+        t = np.linspace(0, 2 * np.pi, 37)
+        x = np.cos(t)
+        y = np.sin(t)
+        self.disc_path = np.concatenate(
+            (x[:, np.newaxis], y[:, np.newaxis]), axis=1
+        )
+        self.peg_path = self.disc_path * config.PEG_RADIUS
+
+        for f in config.FEATURES:
+            self.ax.add_patch(
+                patches.Polygon(
+                    self.disc_path * f[2] + np.array([f[0], f[1]]),
+                    facecolor=config.GROUND_COLOR,
+                    edgecolor="none",
+                    zorder=0,
+                )
+            )
+
         plt.ion()
         plt.show()
 
@@ -62,12 +108,6 @@ class Frame:
 
     def draw_pegs(self, state):
         pegs_state = state["pegs"]
-        t = np.linspace(0, 2 * np.pi, 17)
-        x = np.cos(t) * config.PEG_RADIUS
-        y = np.sin(t) * config.PEG_RADIUS
-        self.peg_path = np.concatenate(
-            (x[:, np.newaxis], y[:, np.newaxis]), axis=1
-        )
 
         self.peg_patches = []
         for key, peg_state in pegs_state.items():
