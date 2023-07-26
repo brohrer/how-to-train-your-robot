@@ -190,7 +190,6 @@ class Body:
                 self.f_x_atoms,
                 self.f_y_atoms,
                 config.CLOCK_PERIOD_SIM,
-                config.SPEED_LIMIT,
             )
 
     def get_state(self):
@@ -241,13 +240,28 @@ def body_interactions_numba(
     compression = r_ab - distance
     compression = np.maximum(compression, 0)
 
-    f_mag = k_ab * compression
+    f_ab_contact = k_ab * compression
 
-    f_norm = f_mag / distance
+    # Breaking the contact forces into their x- and y-components
+    # requires multiplying them by the sin and cos of the angle
+    # of the line of connecting the centers of the two:
+    # sin(angle) = d_y / distance
+    # cos(angle) = d_x / distance
+    #
+    # All together it looks like this
+    # f_x_ab_contact = f_ab_contact * d_x / distance
+    # f_y_ab_contact = f_ab_contact * d_y / distance
+    #
+    # To save an extra element-wise division operation, this is broken
+    # out here into two steps. First, f_ab_contact is divided by distance,
+    # then it is multiplied by d_x and d_y separately.
+    f_norm = f_ab_contact / distance
 
     # The normal forces due to contact
     f_x_ab_contact = f_norm * d_x
     f_y_ab_contact = f_norm * d_y
+
+    # Aggregate to sum the forces of all other atoms on each one individualy.
     f_x_a_contact = np.sum(f_x_ab_contact, axis=0)
     f_x_b_contact = -np.sum(f_x_ab_contact, axis=1)
     f_y_a_contact = np.sum(f_y_ab_contact, axis=0)
@@ -325,12 +339,10 @@ def wall_forces_numba(
     f_total = stiffness_atoms * compression
 
     # Find the x- and y-components of the total force
-    # with calculated sin (y_n / |dist|)
-    # and cos (x_n / |dist|) terms.
-    # Add a small nonzero term for numerical stability.
-    epsilon = 1e-6
-    f_x_walls_contact = f_total * x_n_wall / (np.abs(distance) + epsilon)
-    f_y_walls_contact = f_total * y_n_wall / (np.abs(distance) + epsilon)
+    # with calculated sin (y_n / 1)
+    # and cos (x_n / 1) terms.
+    f_x_walls_contact = f_total * x_n_wall
+    f_y_walls_contact = f_total * y_n_wall
     f_x_contact = np.sum(f_x_walls_contact, axis=0)
     f_y_contact = np.sum(f_y_walls_contact, axis=0)
 
@@ -383,7 +395,6 @@ def update_positions_numba(
     f_x_atoms,
     f_y_atoms,
     CLOCK_PERIOD_SIM,
-    SPEED_LIMIT,
 ):
     f_x = np.sum(f_x_atoms)
     f_y = np.sum(f_y_atoms)

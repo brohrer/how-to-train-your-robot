@@ -21,13 +21,19 @@ class Walls:
         else:
             self.inelasticity = 0.2
 
-    def add_wall(self, x_left, y_left, x_right, y_right):
+    def add_wall(self, wall_init):
+        # def add_wall(self, x_left, y_left, x_right, y_right):
         """
         Initialize with two points on the line.
         Imagine you are looking at the wall.
         One point will be on the left (x_left, y_left)
         and the other will be on the right (x_right, y_right).
         """
+        x_left = wall_init["x_left"]
+        x_right = wall_init["x_right"]
+        y_left = wall_init["y_left"]
+        y_right = wall_init["y_right"]
+
         # A unit vector normal to the surface of the wall
         # pointing away from the wall.
         x_normal, y_normal = self.calculate_wall_normal(

@@ -5,7 +5,7 @@ FIG_WIDTH = 6
 FIG_HEIGHT = 6
 FIG_SCALE = 1.5
 
-GRAVITY = -3.0  # m / s^2
+GRAVITY = 0  # -3.0  # m / s^2
 
 # Appearance
 BACKGROUND_COLOR = "#222222"
@@ -17,8 +17,6 @@ BODY_COLOR = {
     "square": "#E3FF00",
     "terrain": "#404243",
 }
-
-SPEED_LIMIT = 10.0
 
 # Time control
 CLOCK_FREQ_SIM = 1000  # Hertz
@@ -78,7 +76,7 @@ L_BODY["r_atoms"] = np.ones(n_atoms) * x_spacing / 2
 L_BODY["m_atoms"] = np.ones(n_atoms) * atom_mass
 L_BODY["stiffness_atoms"] = np.ones(n_atoms) * atom_stiffness
 L_BODY["sliding_friction"] = sliding_friction
-L_BODY["ineasticity"] = inelasticity
+L_BODY["inleasticity"] = inelasticity
 
 # S-shaped body
 # https://docs.google.com/presentation/d/1Bnaqb-zPWwU9d1gUB_AK_lo9aQqEHI837P5FWwwJhno/edit#slide=id.g20a84048ece_0_0
@@ -100,7 +98,7 @@ S_BODY = {
     "m_atoms": np.ones(n_atoms) * atom_mass,
     "stiffness_atoms": np.ones(n_atoms) * atom_stiffness,
     "sliding_friction": sliding_friction,
-    "ineasticity": inelasticity,
+    "inelasticity": inelasticity,
 }
 
 # T-shaped body
@@ -123,11 +121,11 @@ T_BODY = {
     "m_atoms": np.ones(n_atoms) * atom_mass,
     "stiffness_atoms": np.ones(n_atoms) * atom_stiffness,
     "sliding_friction": sliding_friction,
-    "ineasticity": inelasticity,
+    "inelasticity": inelasticity,
 }
 
 # I-shaped body
-# https://docs.google.com/presentation/d/1Bnaqb-zPWwU9d1gUB_AK_lo9aQqEHI837P5FWwwJhno/edit#slide=id.g256fb254ae7_0_44 
+# https://docs.google.com/presentation/d/1Bnaqb-zPWwU9d1gUB_AK_lo9aQqEHI837P5FWwwJhno/edit#slide=id.g256fb254ae7_0_44
 I_BODY = {
     "id": "I",
     "x": 3.5,
@@ -145,11 +143,11 @@ I_BODY = {
     "m_atoms": np.ones(n_atoms) * atom_mass,
     "stiffness_atoms": np.ones(n_atoms) * atom_stiffness,
     "sliding_friction": sliding_friction,
-    "ineasticity": inelasticity,
+    "inelasticity": inelasticity,
 }
 
 # Square body
-# https://docs.google.com/presentation/d/1Bnaqb-zPWwU9d1gUB_AK_lo9aQqEHI837P5FWwwJhno/edit#slide=id.g256fb254ae7_0_80 
+# https://docs.google.com/presentation/d/1Bnaqb-zPWwU9d1gUB_AK_lo9aQqEHI837P5FWwwJhno/edit#slide=id.g256fb254ae7_0_80
 SQUARE_BODY = {
     "id": "square",
     "x": 1.5,
@@ -167,7 +165,46 @@ SQUARE_BODY = {
     "m_atoms": np.ones(n_atoms) * atom_mass,
     "stiffness_atoms": np.ones(n_atoms) * atom_stiffness,
     "sliding_friction": sliding_friction,
-    "ineasticity": inelasticity,
+    "inelasticity": inelasticity,
 }
 
+BODIES = [
+    TERRAIN,
+    L_BODY,
+    S_BODY,
+    T_BODY,
+    I_BODY,
+    SQUARE_BODY,
+]
 
+right_wall = {
+    "x_left": FIG_WIDTH,
+    "y_left": 1.0,
+    "x_right": FIG_WIDTH,
+    "y_right": 0.0,
+}
+left_wall = {
+    "x_left": 0.0,
+    "y_left": 0.0,
+    "x_right": 0.0,
+    "y_right": 1.0,
+}
+floor = {
+    "x_left": 1.0,
+    "y_left": 0.0,
+    "x_right": 0.0,
+    "y_right": 0.0,
+}
+ceiling = {
+    "x_left": 0.0,
+    "y_left": FIG_HEIGHT,
+    "x_right": 1.0,
+    "y_right": FIG_HEIGHT,
+}
+
+WALLS = [
+    right_wall,
+    left_wall,
+    floor,
+    ceiling,
+]
