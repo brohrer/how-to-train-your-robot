@@ -80,8 +80,9 @@ class Simulation:
             body.calculate_wall_forces(self.walls)
 
         # Add in some gravity
-        for body in self.bodies:
-            body.f_y_atoms += config.GRAVITY * body.m_atoms
+        if config.GRAVITY > 0:
+            for body in self.bodies:
+                body.f_y_atoms += config.GRAVITY * body.m_atoms
 
         # Update atoms' positions based on the forces that act on them.
         for body in self.bodies:

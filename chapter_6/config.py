@@ -5,7 +5,7 @@ FIG_WIDTH = 6
 FIG_HEIGHT = 6
 FIG_SCALE = 1.5
 
-GRAVITY = -3.0  # m / s^2
+GRAVITY = 0  # -3.0  # m / s^2
 
 # Appearance
 BACKGROUND_COLOR = "#222222"

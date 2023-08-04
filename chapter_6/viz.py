@@ -16,8 +16,8 @@ def run(q):
     ts = None
     state = None
 
-    i_over = 0.0
-    i_total = 0.0
+    # i_over = 0.0
+    # i_total = 0.0
     while True:
         overtime = pacemaker.beat()
         if overtime > clock_period:
@@ -27,14 +27,14 @@ def run(q):
             # skip this frame to help catch up.
             continue
 
-        i_total += 1
-        if overtime > config.CLOCK_PERIOD_SIM * 0.5:
-            i_over += 1
-            print(
-                f"   viz over {int(100 * overtime / config.CLOCK_PERIOD_SIM)}%"
-                + " this iteration"
-                + f"  {100 * i_over / i_total:.2f}% cumulative"
-            )
+        # i_total += 1
+        # if overtime > config.CLOCK_PERIOD_SIM * 0.5:
+        #     i_over += 1
+        #     print(
+        #         f"   viz over {int(100 * overtime / config.CLOCK_PERIOD_SIM)}%"
+        #         + " this iteration"
+        #         + f"  {100 * i_over / i_total:.2f}% cumulative"
+        #     )
 
         while not q.empty():
             ts, state = q.get()

@@ -1,3 +1,4 @@
+import math
 import numpy as np
 from numba import njit
 import config
@@ -54,6 +55,12 @@ class Body:
         self.r_atoms = init_dict["r_atoms"]
         self.stiffness_atoms = init_dict["stiffness_atoms"]
 
+        # Find the object radius, the greatest distance from the
+        # center of gravity to that end of an atom.
+        atom_distance = np.sqrt(self.x_atoms_local**2 + self.y_atoms_local**2)
+        atom_edge = atom_distance + self.r_atoms
+        self.radius = np.max(atom_edge)
+
         # Default to a sliding friction coefficient if none is provided.
         try:
             self.sliding_friction = init_dict["sliding_friction"]
@@ -66,8 +73,8 @@ class Body:
         except KeyError:
             self.inelasticity = 0.2
 
-        self.bounding_box = {}
-        self.update_bounding_box()
+        # self.bounding_box = {}
+        # self.update_bounding_box()
 
         # If a body is free to move, it's 'free' value will be True.
         # Otherwise it will be False.
@@ -79,13 +86,11 @@ class Body:
 
         self.f_x_atoms = np.zeros(self.n_atoms)
         self.f_y_atoms = np.zeros(self.n_atoms)
-        self.row_tile = np.ones((self.n_atoms, 1))
-        self.col_tile = np.ones((1, self.n_atoms))
 
     def start_step(self):
         self.f_x_atoms = np.zeros(self.n_atoms)
         self.f_y_atoms = np.zeros(self.n_atoms)
-        self.update_bounding_box()
+        # self.update_bounding_box()
 
     def calculate_interactions(self, body):
         # Check whether these two bodys have any chance of interaction
@@ -97,66 +102,62 @@ class Body:
             inelasticity = (self.inelasticity + body.inelasticity) / 2
 
             body_interactions_numba(
-                body.row_tile,
-                self.col_tile,
                 self.f_x_atoms,
                 body.f_x_atoms,
                 self.f_y_atoms,
                 body.f_y_atoms,
-                self.stiffness_atoms[np.newaxis, :],
-                body.stiffness_atoms[:, np.newaxis],
-                self.r_atoms[np.newaxis, :],
-                body.r_atoms[:, np.newaxis],
-                self.x_atoms[np.newaxis, :],
-                body.x_atoms[:, np.newaxis],
-                self.y_atoms[np.newaxis, :],
-                body.y_atoms[:, np.newaxis],
-                self.v_x_atoms[np.newaxis, :],
-                body.v_x_atoms[:, np.newaxis],
-                self.v_y_atoms[np.newaxis, :],
-                body.v_y_atoms[:, np.newaxis],
+                self.stiffness_atoms,
+                body.stiffness_atoms,
+                self.r_atoms,
+                body.r_atoms,
+                self.x_atoms,
+                body.x_atoms,
+                self.y_atoms,
+                body.y_atoms,
+                self.v_x_atoms,
+                body.v_x_atoms,
+                self.v_y_atoms,
+                body.v_y_atoms,
                 sliding_friction,
                 inelasticity,
             )
 
     def is_close(self, body):
-        bb_a = self.bounding_box
-        bb_b = body.bounding_box
+        a_x_min = self.x - self.radius
+        a_x_max = self.x + self.radius
+        a_y_min = self.y - self.radius
+        a_y_max = self.y + self.radius
+        b_x_min = body.x - body.radius
+        b_x_max = body.x + body.radius
+        b_y_min = body.y - body.radius
+        b_y_max = body.y + body.radius
+
         overlaps = True
         if (
-            bb_a["x_min"] > bb_b["x_max"]
-            or bb_b["x_min"] > bb_a["x_max"]
-            or bb_a["y_min"] > bb_b["y_max"]
-            or bb_b["y_min"] > bb_a["y_max"]
+            a_x_min > b_x_max
+            or b_x_min > a_x_max
+            or a_y_min > b_y_max
+            or b_y_min > a_y_max
         ):
             overlaps = False
         return overlaps
 
-    def update_bounding_box(self):
-        self.bounding_box["x_min"] = np.min(self.x_atoms - self.r_atoms)
-        self.bounding_box["x_max"] = np.max(self.x_atoms + self.r_atoms)
-        self.bounding_box["y_min"] = np.min(self.y_atoms - self.r_atoms)
-        self.bounding_box["y_max"] = np.max(self.y_atoms + self.r_atoms)
-
     def calculate_wall_forces(self, walls):
-        row_tile = np.ones((walls.count, 1))
         sliding_friction = (self.sliding_friction + walls.sliding_friction) / 2
         inelasticity = (self.inelasticity + walls.inelasticity) / 2
         wall_forces_numba(
-            self.col_tile,
-            row_tile,
             self.f_x_atoms,
             self.f_y_atoms,
-            self.stiffness_atoms[np.newaxis, :],
+            self.stiffness_atoms,
             self.r_atoms,
-            walls.x[:, np.newaxis],
+            walls.x,
             walls.x_n,
-            self.x_atoms[np.newaxis, :],
-            walls.y[:, np.newaxis],
+            self.x_atoms,
+            walls.y,
             walls.y_n,
-            self.y_atoms[np.newaxis, :],
-            self.v_x_atoms[np.newaxis, :],
-            self.v_y_atoms[np.newaxis, :],
+            self.y_atoms,
+            self.v_x_atoms,
+            self.v_y_atoms,
             sliding_friction,
             inelasticity,
         )
@@ -170,15 +171,15 @@ class Body:
                 self.v_x,
                 self.v_y,
                 self.v_rot,
-                self.x_atoms,
-                self.y_atoms,
-                self.v_x_atoms,
-                self.v_y_atoms,
             ) = update_positions_numba(
                 self.x_atoms_local,
                 self.y_atoms_local,
                 self.x_atoms,
                 self.y_atoms,
+                self.v_x_atoms,
+                self.v_y_atoms,
+                self.f_x_atoms,
+                self.f_y_atoms,
                 self.x,
                 self.y,
                 self.angle,
@@ -187,8 +188,6 @@ class Body:
                 self.v_rot,
                 self.m,
                 self.rot_inertia,
-                self.f_x_atoms,
-                self.f_y_atoms,
                 config.CLOCK_PERIOD_SIM,
             )
 
@@ -203,8 +202,6 @@ class Body:
 
 @njit
 def body_interactions_numba(
-    row_tile_a,
-    col_tile_b,
     f_x_a,
     f_x_b,
     f_y_a,
@@ -225,90 +222,89 @@ def body_interactions_numba(
     inelasticity,
 ):
     epsilon = 1e-12
-    d_x = (row_tile_a @ x_a) - (x_b @ col_tile_b)
-    d_y = (row_tile_a @ y_a) - (y_b @ col_tile_b)
-    d_v_x = (row_tile_a @ v_x_a) - (v_x_b @ col_tile_b)
-    d_v_y = (row_tile_a @ v_y_a) - (v_y_b @ col_tile_b)
 
-    r_ab = (row_tile_a @ r_a) + (r_b @ col_tile_b)
-    k_ab = 1 / (
-        row_tile_a @ (1 / (k_a + epsilon))
-        + (1 / (k_b + epsilon)) @ col_tile_b
-        + epsilon
-    )
-    distance = (d_x**2 + d_y**2) ** 0.5 + epsilon
-    compression = r_ab - distance
-    compression = np.maximum(compression, 0)
+    for i_row in range(x_a.size):
+        for j_col in range(x_b.size):
+            d_x = x_a[i_row] - x_b[j_col]
+            d_y = y_a[i_row] - y_b[j_col]
 
-    f_ab_contact = k_ab * compression
+            d_v_x = v_x_a[i_row] - v_x_b[j_col]
+            d_v_y = v_y_a[i_row] - v_y_b[j_col]
 
-    # Breaking the contact forces into their x- and y-components
-    # requires multiplying them by the sin and cos of the angle
-    # of the line of connecting the centers of the two:
-    # sin(angle) = d_y / distance
-    # cos(angle) = d_x / distance
-    #
-    # All together it looks like this
-    # f_x_ab_contact = f_ab_contact * d_x / distance
-    # f_y_ab_contact = f_ab_contact * d_y / distance
-    #
-    # To save an extra element-wise division operation, this is broken
-    # out here into two steps. First, f_ab_contact is divided by distance,
-    # then it is multiplied by d_x and d_y separately.
-    f_norm = f_ab_contact / distance
+            r_ab = r_a[i_row] + r_b[j_col]
+            k_ab = 1 / (
+                (1 / (k_a[i_row] + epsilon)) + (1 / (k_b[j_col] + epsilon))
+            )
+            distance = (d_x**2 + d_y**2) ** 0.5 + epsilon
+            compression = r_ab - distance
+            # Negative distance indicates that the center of the disc
+            # is inside the wall.
+            compression = max(0, compression)
 
-    # The normal forces due to contact
-    f_x_ab_contact = f_norm * d_x
-    f_y_ab_contact = f_norm * d_y
+            f_ab_contact = k_ab * compression
 
-    # Aggregate to sum the forces of all other atoms on each one individualy.
-    f_x_a_contact = np.sum(f_x_ab_contact, axis=0)
-    f_x_b_contact = -np.sum(f_x_ab_contact, axis=1)
-    f_y_a_contact = np.sum(f_y_ab_contact, axis=0)
-    f_y_b_contact = -np.sum(f_y_ab_contact, axis=1)
+            # Breaking the contact forces into their x- and y-components
+            # requires multiplying them by the sin and cos of the angle
+            # of the line of connecting the centers of the two:
+            # sin(angle) = d_y / distance
+            # cos(angle) = d_x / distance
+            #
+            # All together it looks like this
+            # f_x_ab_contact = f_ab_contact * d_x / distance
+            # f_y_ab_contact = f_ab_contact * d_y / distance
+            #
+            # To save an extra element-wise division operation, this is broken
+            # out here into two steps.
+            # First, f_ab_contact is divided by distance,
+            # then it is multiplied by d_x and d_y separately.
+            f_norm = f_ab_contact / distance
 
-    # Friction
-    # Forces from energy dissipation due to lateral velocity
-    f_x_ab_sliding = (
-        -sliding_friction * np.abs(f_y_ab_contact) * np.sign(d_v_x)
-    )
-    f_y_ab_sliding = (
-        -sliding_friction * np.abs(f_x_ab_contact) * np.sign(d_v_y)
-    )
-    f_x_a_sliding = np.sum(f_x_ab_sliding, axis=0)
-    f_x_b_sliding = -np.sum(f_x_ab_sliding, axis=1)
-    f_y_a_sliding = np.sum(f_y_ab_sliding, axis=0)
-    f_y_b_sliding = -np.sum(f_y_ab_sliding, axis=1)
+            # The normal forces due to contact
+            f_x_ab_contact = f_norm * d_x
+            f_y_ab_contact = f_norm * d_y
 
-    # Inelasticity
-    # Forces from energy dissipation due to normal velocity
-    f_x_ab_inelastic = -inelasticity * f_x_ab_contact * np.sign(d_v_x)
-    f_y_ab_inelastic = -inelasticity * f_y_ab_contact * np.sign(d_v_y)
-    f_x_a_inelastic = np.sum(f_x_ab_inelastic, axis=0)
-    f_x_b_inelastic = -np.sum(f_x_ab_inelastic, axis=1)
-    f_y_a_inelastic = np.sum(f_y_ab_inelastic, axis=0)
-    f_y_b_inelastic = -np.sum(f_y_ab_inelastic, axis=1)
+            # Aggregate to sum the forces of all other atoms
+            # on each one individualy.
+            f_x_a[i_row] += f_x_ab_contact
+            f_x_b[j_col] -= f_x_ab_contact
+            f_y_a[i_row] += f_y_ab_contact
+            f_y_b[j_col] -= f_y_ab_contact
 
-    f_x_a += f_x_a_contact + f_x_a_sliding + f_x_a_inelastic
-    f_x_b += f_x_b_contact + f_x_b_sliding + f_x_b_inelastic
-    f_y_a += f_y_a_contact + f_y_a_sliding + f_y_a_inelastic
-    f_y_b += f_y_b_contact + f_y_b_sliding + f_y_b_inelastic
+            # Friction
+            # Forces from energy dissipation due to lateral velocity
+            f_x_ab_sliding = (
+                -sliding_friction * np.abs(f_y_ab_contact) * np.sign(d_v_x)
+            )
+            f_y_ab_sliding = (
+                -sliding_friction * np.abs(f_x_ab_contact) * np.sign(d_v_y)
+            )
+            f_x_a[i_row] += f_x_ab_sliding
+            f_x_b[j_col] -= f_x_ab_sliding
+            f_y_a[i_row] += f_y_ab_sliding
+            f_y_b[j_col] -= f_y_ab_sliding
+
+            # Inelasticity
+            # Forces from energy dissipation due to normal velocity
+            f_x_ab_inelastic = -inelasticity * f_x_ab_contact * np.sign(d_v_x)
+            f_y_ab_inelastic = -inelasticity * f_y_ab_contact * np.sign(d_v_y)
+            f_x_a[i_row] += f_x_ab_inelastic
+            f_x_b[j_col] -= f_x_ab_inelastic
+            f_y_a[i_row] += f_y_ab_inelastic
+            f_y_b[j_col] -= f_y_ab_inelastic
 
 
 @njit
 def wall_forces_numba(
-    col_tile,
-    row_tile,
     f_x,
     f_y,
     stiffness_atoms,
     r_atoms,
-    x_wall_col,
+    x_wall,
     x_n_wall,
-    x_atoms_row,
-    y_wall_col,
+    x_atoms,
+    y_wall,
     y_n_wall,
-    y_atoms_row,
+    y_atoms,
     v_x_atoms,
     v_y_atoms,
     sliding_friction,
@@ -325,57 +321,62 @@ def wall_forces_numba(
     A positive value indicates distance away from the wall.
     A negative value indicates distance *into* the wall.
     """
-    dx = (row_tile @ x_atoms_row) - (x_wall_col @ col_tile)
-    dy = (row_tile @ y_atoms_row) - (y_wall_col @ col_tile)
+    # i_wall is also i_row
+    for i_wall in range(x_wall.size):
+        # j_atom is also j_col
+        for j_atom in range(x_atoms.size):
+            d_x = x_atoms[j_atom] - x_wall[i_wall]
+            d_y = y_atoms[j_atom] - y_wall[i_wall]
 
-    dx_n = dx * x_n_wall
-    dy_n = dy * y_n_wall
-    # Negative distance indicates that the center of the disc
-    # is inside the wall.
-    distance = dx_n + dy_n
-    compression = r_atoms - distance
-    compression = np.maximum(compression, 0)
+            dx_n = d_x * x_n_wall[i_wall]
+            dy_n = d_y * y_n_wall[i_wall]
+            # Negative distance indicates that the center of the disc
+            # is inside the wall.
+            distance = dx_n + dy_n
+            compression = r_atoms[j_atom] - distance
+            compression = max(compression, 0.0)
 
-    f_total = stiffness_atoms * compression
+            f_total = stiffness_atoms[j_atom] * compression
 
-    # Find the x- and y-components of the total force
-    # with calculated sin (y_n / 1)
-    # and cos (x_n / 1) terms.
-    f_x_walls_contact = f_total * x_n_wall
-    f_y_walls_contact = f_total * y_n_wall
-    f_x_contact = np.sum(f_x_walls_contact, axis=0)
-    f_y_contact = np.sum(f_y_walls_contact, axis=0)
+            # Find the x- and y-components of the total force
+            # with calculated sin (y_n / 1)
+            # and cos (x_n / 1) terms.
+            f_x_wall_contact = f_total * x_n_wall[i_wall]
+            f_y_wall_contact = f_total * y_n_wall[i_wall]
+            f_x[j_atom] += f_x_wall_contact
+            f_y[j_atom] += f_y_wall_contact
 
-    # Friction
-    # Forces from energy dissipation due to lateral velocity
-    f_x_walls_sliding = (
-        -sliding_friction * np.abs(f_y_walls_contact) * np.sign(v_x_atoms)
-    )
-    f_y_walls_sliding = (
-        -sliding_friction * np.abs(f_x_walls_contact) * np.sign(v_y_atoms)
-    )
-    f_x_sliding = np.sum(f_x_walls_sliding, axis=0)
-    f_y_sliding = np.sum(f_y_walls_sliding, axis=0)
+            # Friction
+            # Forces from energy dissipation due to lateral velocity
+            f_x_wall_sliding = (
+                -sliding_friction
+                * np.abs(f_y_wall_contact)
+                * np.sign(v_x_atoms[j_atom])
+            )
+            f_y_wall_sliding = (
+                -sliding_friction
+                * np.abs(f_x_wall_contact)
+                * np.sign(v_y_atoms[j_atom])
+            )
+            f_x[j_atom] += f_x_wall_sliding
+            f_y[j_atom] += f_y_wall_sliding
 
-    # Inelasticity
-    # Forces from energy dissipation due to normal velocity
-    f_x_walls_inelastic = (
-        -inelasticity
-        * f_x_walls_contact
-        * np.sign(v_x_atoms)
-        * np.sign(x_n_wall)
-    )
-    f_y_walls_inelastic = (
-        -inelasticity
-        * f_y_walls_contact
-        * np.sign(v_y_atoms)
-        * np.sign(y_n_wall)
-    )
-    f_x_inelastic = np.sum(f_x_walls_inelastic, axis=0)
-    f_y_inelastic = np.sum(f_y_walls_inelastic, axis=0)
-
-    f_x += f_x_contact + f_x_sliding + f_x_inelastic
-    f_y += f_y_contact + f_y_sliding + f_y_inelastic
+            # Inelasticity
+            # Forces from energy dissipation due to normal velocity
+            f_x_wall_inelastic = (
+                -inelasticity
+                * f_x_wall_contact
+                * np.sign(v_x_atoms[j_atom])
+                * np.sign(x_n_wall[i_wall])
+            )
+            f_y_wall_inelastic = (
+                -inelasticity
+                * f_y_wall_contact
+                * np.sign(v_y_atoms[j_atom])
+                * np.sign(y_n_wall[i_wall])
+            )
+            f_x[j_atom] += f_x_wall_inelastic
+            f_y[j_atom] += f_y_wall_inelastic
 
 
 @njit
@@ -384,6 +385,10 @@ def update_positions_numba(
     y_atoms_local,
     x_atoms,
     y_atoms,
+    v_x_atoms,
+    v_y_atoms,
+    f_x_atoms,
+    f_y_atoms,
     x,
     y,
     angle,
@@ -392,15 +397,19 @@ def update_positions_numba(
     v_rot,
     m,
     rot_inertia,
-    f_x_atoms,
-    f_y_atoms,
     CLOCK_PERIOD_SIM,
 ):
-    f_x = np.sum(f_x_atoms)
-    f_y = np.sum(f_y_atoms)
-    torque = np.sum(f_y_atoms * (x_atoms - x)) - np.sum(
-        f_x_atoms * (y_atoms - y)
-    )
+    n_atoms = x_atoms.size
+    f_x = 0
+    f_y = 0
+    torque = 0
+    for i_atom in range(n_atoms):
+        f_x += f_x_atoms[i_atom]
+        f_y += f_y_atoms[i_atom]
+        torque += (
+            f_y_atoms[i_atom] * (x_atoms[i_atom] - x) -
+            f_x_atoms[i_atom] * (y_atoms[i_atom] - y)
+        )
 
     a_x = f_x / m
     a_y = f_y / m
@@ -414,13 +423,20 @@ def update_positions_numba(
     y += CLOCK_PERIOD_SIM * v_y
     angle += CLOCK_PERIOD_SIM * v_rot
 
-    x_atoms_rel = x_atoms_local * np.cos(angle) - y_atoms_local * np.sin(angle)
-    y_atoms_rel = y_atoms_local * np.cos(angle) + x_atoms_local * np.sin(angle)
-    v_x_atoms_rel = -v_rot * y_atoms_rel
-    v_y_atoms_rel = v_rot * x_atoms_rel
-    x_atoms = x + x_atoms_rel
-    y_atoms = y + y_atoms_rel
-    v_x_atoms = v_x + v_x_atoms_rel
-    v_y_atoms = v_y + v_y_atoms_rel
+    for i_atom in range(n_atoms):
+        x_atom_rel = (
+            x_atoms_local[i_atom] * math.cos(angle) -
+            y_atoms_local[i_atom] * math.sin(angle)
+        )
+        y_atom_rel = (
+            y_atoms_local[i_atom] * math.cos(angle) +
+            x_atoms_local[i_atom] * math.sin(angle)
+        )
+        v_x_atom_rel = -v_rot * y_atom_rel
+        v_y_atom_rel = v_rot * x_atom_rel
+        x_atoms[i_atom] = x + x_atom_rel
+        y_atoms[i_atom] = y + y_atom_rel
+        v_x_atoms[i_atom] = v_x + v_x_atom_rel
+        v_y_atoms[i_atom] = v_y + v_y_atom_rel
 
-    return x, y, angle, v_x, v_y, v_rot, x_atoms, y_atoms, v_x_atoms, v_y_atoms
+    return x, y, angle, v_x, v_y, v_rot

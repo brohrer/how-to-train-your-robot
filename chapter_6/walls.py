@@ -5,8 +5,8 @@ class Walls:
     def __init__(self, sliding_friction=None, inelasticity=None):
         self.x = np.zeros(0)
         self.y = np.zeros(0)
-        self.x_n = np.zeros((0, 1))
-        self.y_n = np.zeros((0, 1))
+        self.x_n = np.zeros(0)
+        self.y_n = np.zeros(0)
         self.count = 0
 
         # Default to a sliding friction coefficient if none is provided.
@@ -42,12 +42,8 @@ class Walls:
         # An arbitrary point on the line
         self.x = np.concatenate((self.x, np.array([x_left])))
         self.y = np.concatenate((self.y, np.array([y_left])))
-        self.x_n = np.concatenate(
-            (self.x_n, np.array([x_normal])[:, np.newaxis]), axis=0
-        )
-        self.y_n = np.concatenate(
-            (self.y_n, np.array([y_normal])[:, np.newaxis]), axis=0
-        )
+        self.x_n = np.concatenate((self.x_n, np.array([x_normal])))
+        self.y_n = np.concatenate((self.y_n, np.array([y_normal])))
         self.count += 1
         return
 

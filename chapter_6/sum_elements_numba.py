@@ -2,6 +2,7 @@ import time
 import numpy as np
 from numba import njit
 
+
 #  2300 ms without Numba
 #  14 ms with Numba
 @njit
