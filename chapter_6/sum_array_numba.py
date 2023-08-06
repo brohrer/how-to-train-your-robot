@@ -5,7 +5,7 @@ from numba import njit
 
 # 42 ms with Numba
 # 17 ms without Numba
-# @njit
+@njit
 def add(A, B, C):
     C = A + B
     return C

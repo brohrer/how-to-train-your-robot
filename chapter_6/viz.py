@@ -8,7 +8,7 @@ from pacemaker import Pacemaker
 import config
 
 
-def run(q):
+def run(sim_viz_state_q):
     logger = logging_setup.get_logger("viz", config.LOGGING_LEVEL_VIZ)
     frame = Frame()
     clock_period = 1 / float(config.CLOCK_FREQ_VIZ)
@@ -16,28 +16,19 @@ def run(q):
     ts = None
     state = None
 
-    # i_over = 0.0
-    # i_total = 0.0
     while True:
         overtime = pacemaker.beat()
         if overtime > clock_period:
-            logger.error(json.dumps({"ts": time.time(), "overtime": overtime}))
+            logger.warning(
+                json.dumps({"ts": time.time(), "overtime": overtime})
+            )
 
             # If the visualization is running behind
             # skip this frame to help catch up.
             continue
 
-        # i_total += 1
-        # if overtime > config.CLOCK_PERIOD_SIM * 0.5:
-        #     i_over += 1
-        #     print(
-        #         f"   viz over {int(100 * overtime / config.CLOCK_PERIOD_SIM)}%"
-        #         + " this iteration"
-        #         + f"  {100 * i_over / i_total:.2f}% cumulative"
-        #     )
-
-        while not q.empty():
-            ts, state = q.get()
+        while not sim_viz_state_q.empty():
+            ts, state = sim_viz_state_q.get()
 
         logger.debug(json.dumps({"ts": ts, "state": state}))
         frame.update(state)
@@ -45,16 +36,11 @@ def run(q):
 
 class Frame:
     def __init__(self):
-        self.fig = plt.figure(
-            figsize=(
-                config.FIG_WIDTH * config.FIG_SCALE,
-                config.FIG_HEIGHT * config.FIG_SCALE,
-            )
-        )
+        self.fig = plt.figure(figsize=(config.FIG_WIDTH, config.FIG_HEIGHT))
         self.ax = self.fig.add_axes((0, 0, 1, 1))
         self.ax.set_facecolor(config.BACKGROUND_COLOR)
-        self.ax.set_xlim(0, config.FIG_WIDTH)
-        self.ax.set_ylim(0, config.FIG_HEIGHT)
+        self.ax.set_xlim(0, config.WORLD_WIDTH)
+        self.ax.set_ylim(0, config.WORLD_HEIGHT)
 
         t = np.linspace(0, 2 * np.pi, 37)
         x = np.cos(t)

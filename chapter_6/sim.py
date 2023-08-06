@@ -8,7 +8,7 @@ from pacemaker import Pacemaker
 from walls import Walls
 
 
-def run(q):
+def run(sim_dash_duration_q, sim_viz_state_q):
     logger = logging_setup.get_logger("sim", config.LOGGING_LEVEL_SIM)
     sim = Simulation()
 
@@ -19,42 +19,44 @@ def run(q):
 
     pacemaker = Pacemaker(config.CLOCK_FREQ_SIM)
 
-    # Updating the q can slow down the simulation.
+    # Updating a Queue can slow down the simulation.
     # Converting the terrain array to JSON is a slow process.
-    # Only update it approximately twice per frame.
-    # Once per frame might lead to lost-frame glitches, which could
-    # be noticeable.
-    steps_per_q_update = int(
+    # Only update it approximately once per frame.
+    steps_per_viz_q_update = int(
         config.CLOCK_FREQ_SIM / (1 * config.CLOCK_FREQ_VIZ)
     )
-    steps_since_q_update = 0
+    steps_since_viz_q_update = 0
 
-    i_over = 0.0
-    i_total = 0.0
+    # i_over = 0.0
+    # i_total = 0.0
     while True:
         overtime = pacemaker.beat()
 
-        i_total += 1
-        if overtime > config.CLOCK_PERIOD_SIM * 0.5:
-            i_over += 1
-            print(
-                f"sim over {int(100 * overtime / config.CLOCK_PERIOD_SIM)}%"
-                + " this iteration"
-                + f"  {100 * i_over / i_total:.2f}% cumulative"
-            )
+        # i_total += 1
+        # if overtime > config.CLOCK_PERIOD_SIM * 0.5:
+        #     i_over += 1
+        #     print(
+        #         f"sim over {int(100 * overtime / config.CLOCK_PERIOD_SIM)}%"
+        #         + " this iteration"
+        #         + f"  {100 * i_over / i_total:.2f}% cumulative"
+        #     )
 
         if overtime > config.CLOCK_PERIOD_SIM:
-            logger.error(json.dumps({"ts": time.time(), "overtime": overtime}))
+            logger.warning(
+                json.dumps({"ts": time.time(), "overtime": overtime})
+            )
 
-        sim.step()
+        step_duration = sim.step()
 
-        steps_since_q_update += 1
-        if steps_since_q_update >= steps_per_q_update:
+        sim_dash_duration_q.put(step_duration)
+
+        steps_since_viz_q_update += 1
+        if steps_since_viz_q_update >= steps_per_viz_q_update:
             state = sim.get_state()
             ts = time.time()
             logger.debug(json.dumps({"ts": ts, "state": state}))
-            q.put((ts, state))
-            steps_since_q_update = 0
+            sim_viz_state_q.put((ts, state))
+            steps_since_viz_q_update = 0
 
 
 class Simulation:
@@ -68,6 +70,9 @@ class Simulation:
             self.walls.add_wall(wall_init)
 
     def step(self):
+        # Time each pass through the computations of step().
+        start = time.time()
+
         for body in self.bodies:
             body.start_step()
 
@@ -88,7 +93,8 @@ class Simulation:
         for body in self.bodies:
             body.update_positions()
 
-        return
+        elapsed = time.time() - start
+        return elapsed
 
     def get_state(self):
         state = {}

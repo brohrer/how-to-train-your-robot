@@ -1,46 +1,41 @@
 import numpy as np
 import logging
 
-FIG_WIDTH = 6
-FIG_HEIGHT = 6
-FIG_SCALE = 1.5
-
-GRAVITY = 0  # -3.0  # m / s^2
-
-# Appearance
-BACKGROUND_COLOR = "#222222"
-BODY_COLOR = {
-    "L": "#2EA3F2",
-    "S": "#F28A5C",
-    "T": "#03C03C",
-    "I": "#FF1493",
-    "square": "#E3FF00",
-    "terrain": "#404243",
-}
 
 # Time control
-CLOCK_FREQ_SIM = 1000  # Hertz
+CLOCK_FREQ_SIM = 10000  # Hertz
 CLOCK_PERIOD_SIM = 1 / float(CLOCK_FREQ_SIM)
 CLOCK_FREQ_VIZ = 30  # Hertz
+CLOCK_FREQ_DASH = 30  # Hertz
 
 # Logging settings
-LOGGING_LEVEL_SIM = logging.INFO
-LOGGING_LEVEL_VIZ = logging.INFO
+LOGGING_LEVEL_SIM = logging.ERROR
+LOGGING_LEVEL_VIZ = logging.ERROR
+LOGGING_LEVEL_DASH = logging.INFO
+
+#
+############################################
+# Configuration parameters for the simulation
+
+WORLD_WIDTH = 6
+WORLD_HEIGHT = 6
+
+GRAVITY = 0  # -3.0  # m / s^2
 
 # Initialize crystals
 # Terrain crystals
 TERRAIN = {}
 TERRAIN["id"] = "terrain"
-TERRAIN["x"] = FIG_WIDTH / 2
-TERRAIN["y"] = FIG_HEIGHT / 2
+TERRAIN["x"] = WORLD_WIDTH / 2
+TERRAIN["y"] = WORLD_HEIGHT / 2
 TERRAIN["x_atoms"] = (
-    np.array([0.10, 0.20, 0.35, 0.50, 0.65, 0.80, 0.90]) * FIG_WIDTH
+    np.array([0.10, 0.20, 0.35, 0.50, 0.65, 0.80, 0.90]) * WORLD_WIDTH
 )
 TERRAIN["y_atoms"] = (
-    np.array([0.73, 0.60, 0.45, 0.30, 0.15, 0.40, 0.66]) * FIG_HEIGHT
+    np.array([0.73, 0.60, 0.45, 0.30, 0.15, 0.40, 0.66]) * WORLD_HEIGHT
 )
 n_atoms = TERRAIN["x_atoms"].size
-TERRAIN["r_atoms"] = np.ones(n_atoms) * FIG_WIDTH * 0.05
+TERRAIN["r_atoms"] = np.ones(n_atoms) * WORLD_WIDTH * 0.05
 TERRAIN["stiffness_atoms"] = np.ones(n_atoms) * 1e3
 TERRAIN["sliding_friction"] = 0.4
 TERRAIN["inelasticity"] = 0.05
@@ -178,9 +173,9 @@ BODIES = [
 ]
 
 right_wall = {
-    "x_left": FIG_WIDTH,
+    "x_left": WORLD_WIDTH,
     "y_left": 1.0,
-    "x_right": FIG_WIDTH,
+    "x_right": WORLD_WIDTH,
     "y_right": 0.0,
 }
 left_wall = {
@@ -197,9 +192,9 @@ floor = {
 }
 ceiling = {
     "x_left": 0.0,
-    "y_left": FIG_HEIGHT,
+    "y_left": WORLD_HEIGHT,
     "x_right": 1.0,
-    "y_right": FIG_HEIGHT,
+    "y_right": WORLD_HEIGHT,
 }
 
 WALLS = [
@@ -208,3 +203,92 @@ WALLS = [
     floor,
     ceiling,
 ]
+
+#
+############################################
+# Configuration parameters for the animation
+
+FIG_SCALE = 1.5
+FIG_WIDTH = WORLD_WIDTH * FIG_SCALE
+FIG_HEIGHT = WORLD_HEIGHT * FIG_SCALE
+
+# Appearance
+BACKGROUND_COLOR = "#222222"
+BODY_COLOR = {
+    "L": "#2EA3F2",
+    "S": "#F28A5C",
+    "T": "#03C03C",
+    "I": "#FF1493",
+    "square": "#E3FF00",
+    "terrain": "#404243",
+}
+
+#
+############################################
+# Configuration parameters for the dashboard
+
+DASH_X = 1050  # pixels from the left
+DASH_Y = 100  # pixels from the top
+DASH_WIDTH = 640  # In pixels
+DASH_HEIGHT = 345  # In pixels
+
+DASH_BACKGROUND_COLOR = "#222222"
+DASH_FOREGROUND_COLOR = "#FFFFFF"
+DASH_SECOND_COLOR = "#888888"
+DASH_BORDER = 0.2
+DASH_LINE_PARAMS = {
+    "color": DASH_FOREGROUND_COLOR,
+    "linewidth": 1,
+}
+
+DASH_X_LABEL = "seconds"
+DASH_Y_LABEL = "compute budget p90"
+DASH_LABEL_PARAMS = {
+    "color": DASH_SECOND_COLOR,
+    "fontsize": 8,
+}
+DASH_X_TICK_LABELS = ["60", "45", "30", "15", "now"]
+DASH_Y_TICK_LABELS = ["50%", "100%", "150%", "200%"]
+DASH_X_TICK_POSITIONS = [-59, -45, -30, -15, 0]
+DASH_Y_TICK_POSITIONS = [.5, 1.0, 1.5, 2.0]
+
+DASH_GRID_PARAMS = {
+    "color": DASH_SECOND_COLOR,
+    "linewidth": 1,
+    "linestyle": "dotted",
+}
+DASH_X_TICK_PARAMS = {
+    "axis": "x",
+    "direction": "in",
+    "color": DASH_SECOND_COLOR,
+    "labelcolor": DASH_SECOND_COLOR,
+    "labelsize": 6,
+    "bottom": True,
+    "top": False,
+    # "left": True,
+    # "right": False,
+    "labelbottom": True,
+    "labeltop": False,
+    # "labelleft": True,
+    # "labelright": False,
+}
+DASH_Y_TICK_PARAMS = {
+    "axis": "y",
+    "direction": "in",
+    "color": DASH_SECOND_COLOR,
+    "labelcolor": DASH_SECOND_COLOR,
+    "labelsize": 6,
+    # "bottom": True,
+    # "top": False,
+    "left": False,
+    "right": False,
+    # "labelbottom": True,
+    # "labeltop": False,
+    "labelleft": True,
+    "labelright": False,
+}
+DASH_CONCERN_ZONE_PARAMS = {
+    "edgecolor": "none",
+    "facecolor": "#333333",
+    "zorder": -2,
+}

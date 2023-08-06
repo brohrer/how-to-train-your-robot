@@ -57,7 +57,9 @@ class Body:
 
         # Find the object radius, the greatest distance from the
         # center of gravity to that end of an atom.
-        atom_distance = np.sqrt(self.x_atoms_local**2 + self.y_atoms_local**2)
+        atom_distance = np.sqrt(
+            self.x_atoms_local**2 + self.y_atoms_local**2
+        )
         atom_edge = atom_distance + self.r_atoms
         self.radius = np.max(atom_edge)
 
@@ -406,10 +408,9 @@ def update_positions_numba(
     for i_atom in range(n_atoms):
         f_x += f_x_atoms[i_atom]
         f_y += f_y_atoms[i_atom]
-        torque += (
-            f_y_atoms[i_atom] * (x_atoms[i_atom] - x) -
-            f_x_atoms[i_atom] * (y_atoms[i_atom] - y)
-        )
+        torque += f_y_atoms[i_atom] * (x_atoms[i_atom] - x) - f_x_atoms[
+            i_atom
+        ] * (y_atoms[i_atom] - y)
 
     a_x = f_x / m
     a_y = f_y / m
@@ -424,14 +425,12 @@ def update_positions_numba(
     angle += CLOCK_PERIOD_SIM * v_rot
 
     for i_atom in range(n_atoms):
-        x_atom_rel = (
-            x_atoms_local[i_atom] * math.cos(angle) -
-            y_atoms_local[i_atom] * math.sin(angle)
-        )
-        y_atom_rel = (
-            y_atoms_local[i_atom] * math.cos(angle) +
-            x_atoms_local[i_atom] * math.sin(angle)
-        )
+        x_atom_rel = x_atoms_local[i_atom] * math.cos(angle) - y_atoms_local[
+            i_atom
+        ] * math.sin(angle)
+        y_atom_rel = y_atoms_local[i_atom] * math.cos(angle) + x_atoms_local[
+            i_atom
+        ] * math.sin(angle)
         v_x_atom_rel = -v_rot * y_atom_rel
         v_y_atom_rel = v_rot * x_atom_rel
         x_atoms[i_atom] = x + x_atom_rel
