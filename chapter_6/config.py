@@ -3,10 +3,14 @@ import logging
 
 
 # Time control
-CLOCK_FREQ_SIM = 10000  # Hertz
-CLOCK_PERIOD_SIM = 1 / float(CLOCK_FREQ_SIM)
+CLOCK_FREQ_SIM = 1000  # Hertz
+CLOCK_PERIOD_SIM = 1 / float(CLOCK_FREQ_SIM)  # seconds
 CLOCK_FREQ_VIZ = 30  # Hertz
-CLOCK_FREQ_DASH = 30  # Hertz
+CLOCK_FREQ_DASH = 4  # Hertz
+CLOCK_FREQ_RUN = 4  # Hertz
+# CLOCK_FREQ_WATCH = .25  # Hertz
+ALIVE_CHECK_FREQ = 1  # Hertz
+WARMUP_PERIOD = 6  # seconds
 
 # Logging settings
 LOGGING_LEVEL_SIM = logging.ERROR
@@ -250,7 +254,7 @@ DASH_LABEL_PARAMS = {
 DASH_X_TICK_LABELS = ["60", "45", "30", "15", "now"]
 DASH_Y_TICK_LABELS = ["50%", "100%", "150%", "200%"]
 DASH_X_TICK_POSITIONS = [-59, -45, -30, -15, 0]
-DASH_Y_TICK_POSITIONS = [.5, 1.0, 1.5, 2.0]
+DASH_Y_TICK_POSITIONS = [0.5, 1.0, 1.5, 2.0]
 
 DASH_GRID_PARAMS = {
     "color": DASH_SECOND_COLOR,

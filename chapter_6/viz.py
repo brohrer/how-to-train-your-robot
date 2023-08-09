@@ -1,4 +1,6 @@
 import json
+import os
+# import sys
 import time
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,16 +10,39 @@ from pacemaker import Pacemaker
 import config
 
 
-def run(sim_viz_state_q):
+def run(sim_viz_state_q, run_viz_alive_q, viz_run_alive_q):
     logger = logging_setup.get_logger("viz", config.LOGGING_LEVEL_VIZ)
     frame = Frame()
     clock_period = 1 / float(config.CLOCK_FREQ_VIZ)
     pacemaker = Pacemaker(config.CLOCK_FREQ_VIZ)
+    n_alive_check = int(config.CLOCK_FREQ_VIZ / config.ALIVE_CHECK_FREQ)
+    i_alive_check = 0
     ts = None
     state = None
 
     while True:
         overtime = pacemaker.beat()
+
+        # Send a heartbeat from this process to the parent runner process,
+        # reassuring it that everything here is okie dokie.
+        viz_run_alive_q.put(True)
+
+        # Watch for a heartbeat from the parent runner process.
+        # If it is not found, then shut down this process too.
+        i_alive_check += 1
+
+        if i_alive_check == n_alive_check:
+            runner_is_alive = False
+            while not run_viz_alive_q.empty():
+                runner_is_alive = run_viz_alive_q.get()
+            if not runner_is_alive:
+                print("Runner process has shut down.")
+                print("Shutting down visualization process.")
+                # sys.exit()
+                os._exit(os.EX_OK)
+            else:
+                i_alive_check = 0
+
         if overtime > clock_period:
             logger.warning(
                 json.dumps({"ts": time.time(), "overtime": overtime})

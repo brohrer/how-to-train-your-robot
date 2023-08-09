@@ -1,5 +1,7 @@
 import json
 import logging_setup
+import os
+# import sys
 import time
 
 import config
@@ -8,7 +10,12 @@ from pacemaker import Pacemaker
 from walls import Walls
 
 
-def run(sim_dash_duration_q, sim_viz_state_q):
+def run(
+    sim_dash_duration_q,
+    sim_viz_state_q,
+    run_sim_alive_q,
+    sim_run_alive_q,
+):
     logger = logging_setup.get_logger("sim", config.LOGGING_LEVEL_SIM)
     sim = Simulation()
 
@@ -18,6 +25,8 @@ def run(sim_dash_duration_q, sim_viz_state_q):
     sim.step()
 
     pacemaker = Pacemaker(config.CLOCK_FREQ_SIM)
+    n_alive_check = int(config.CLOCK_FREQ_SIM / config.ALIVE_CHECK_FREQ)
+    i_alive_check = 0
 
     # Updating a Queue can slow down the simulation.
     # Converting the terrain array to JSON is a slow process.
@@ -27,24 +36,32 @@ def run(sim_dash_duration_q, sim_viz_state_q):
     )
     steps_since_viz_q_update = 0
 
-    # i_over = 0.0
-    # i_total = 0.0
     while True:
         overtime = pacemaker.beat()
-
-        # i_total += 1
-        # if overtime > config.CLOCK_PERIOD_SIM * 0.5:
-        #     i_over += 1
-        #     print(
-        #         f"sim over {int(100 * overtime / config.CLOCK_PERIOD_SIM)}%"
-        #         + " this iteration"
-        #         + f"  {100 * i_over / i_total:.2f}% cumulative"
-        #     )
-
         if overtime > config.CLOCK_PERIOD_SIM:
             logger.warning(
                 json.dumps({"ts": time.time(), "overtime": overtime})
             )
+
+        # Send a heartbeat from this process to the parent runner process,
+        # reassuring it that everything here is okie dokie.
+        sim_run_alive_q.put(True)
+
+        # Watch for a heartbeat from the parent runner process.
+        # If it is not found, then shut down this process too.
+        i_alive_check += 1
+
+        if i_alive_check == n_alive_check:
+            runner_is_alive = False
+            while not run_sim_alive_q.empty():
+                runner_is_alive = run_sim_alive_q.get()
+            if not runner_is_alive:
+                print("Runner process has shut down.")
+                print("Shutting down simulation process.")
+                # sys.exit()
+                os._exit(os.EX_OK)
+            else:
+                i_alive_check = 0
 
         step_duration = sim.step()
 
