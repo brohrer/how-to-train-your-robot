@@ -1,6 +1,6 @@
 from time import perf_counter
 import numpy as np
-from numba import njit, prange
+from numba import njit
 
 n_reps = 10
 n_elements = int(1e8)
@@ -43,6 +43,6 @@ C = np.random.sample(n_elements)
 add_numpy_jit(A, B, C)
 add_elements(A, B, C)
 
-time_function(np.add, "Numpy array addition")
+time_function(np.add, "Numpy array addition with pre-allocated out array")
 time_function(add_numpy_jit, "Numpy array addition, jitted by Numba ")
 time_function(add_elements, "Numba-jitted element-wise array addition")

@@ -3,7 +3,7 @@ import logging
 
 
 # Time control
-CLOCK_FREQ_SIM = 1000  # Hertz
+CLOCK_FREQ_SIM = 10000  # Hertz
 CLOCK_PERIOD_SIM = 1 / float(CLOCK_FREQ_SIM)  # seconds
 CLOCK_FREQ_VIZ = 30  # Hertz
 CLOCK_FREQ_DASH = 4  # Hertz
