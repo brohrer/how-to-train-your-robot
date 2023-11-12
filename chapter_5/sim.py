@@ -11,9 +11,12 @@ from walls import Walls
 def run(q):
     logger = logging_setup.get_logger("sim", config.LOGGING_LEVEL_SIM)
     sim = Simulation()
+
     # Warm up the simulation and give everything a chance to be
-    # initialized.
+    # initialized. This can take 10 seconds or more.
+    print("Warming up simulation")
     sim.step()
+
     pacemaker = Pacemaker(config.CLOCK_FREQ_SIM)
 
     # Updating the q can slow down the simulation.
@@ -43,11 +46,12 @@ def run(q):
         if overtime > config.CLOCK_PERIOD_SIM:
             logger.error(json.dumps({"ts": time.time(), "overtime": overtime}))
 
-        state = sim.step()
-        ts = time.time()
+        sim.step()
 
         steps_since_q_update += 1
         if steps_since_q_update >= steps_per_q_update:
+            state = sim.get_state()
+            ts = time.time()
             logger.debug(json.dumps({"ts": ts, "state": state}))
             q.put((ts, state))
             steps_since_q_update = 0
@@ -56,45 +60,12 @@ def run(q):
 class Simulation:
     def __init__(self):
         self.bodies = []
+        for body_init in config.BODIES:
+            self.bodies.append(Body(body_init))
+
         self.walls = Walls()
-
-        # Add a body containing immovable atoms.
-        self.bodies.append(Body(config.TERRAIN))
-
-        self.bodies.append(Body(config.L_BODY))
-        self.bodies.append(Body(config.S_BODY))
-        self.bodies.append(Body(config.T_BODY))
-        self.bodies.append(Body(config.I_BODY))
-        self.bodies.append(Body(config.SQUARE_BODY))
-
-        # Add right wall
-        self.walls.add_wall(
-            x_left=config.FIG_WIDTH,
-            y_left=1.0,
-            x_right=config.FIG_WIDTH,
-            y_right=0.0,
-        )
-        # Add left wall
-        self.walls.add_wall(
-            x_left=0.0,
-            y_left=0.0,
-            x_right=0.0,
-            y_right=1.0,
-        )
-        # Add floor
-        self.walls.add_wall(
-            x_left=1.0,
-            y_left=0.0,
-            x_right=0.0,
-            y_right=0.0,
-        )
-        # Add ceiling
-        self.walls.add_wall(
-            x_left=0.0,
-            y_left=config.FIG_HEIGHT,
-            x_right=1.0,
-            y_right=config.FIG_HEIGHT,
-        )
+        for wall_init in config.WALLS:
+            self.walls.add_wall(wall_init)
 
     def step(self):
         for body in self.bodies:
@@ -116,8 +87,7 @@ class Simulation:
         for body in self.bodies:
             body.update_positions()
 
-        state = self.get_state()
-        return state
+        return
 
     def get_state(self):
         state = {}
