@@ -126,7 +126,7 @@ T_BODY = {
 }
 
 # I-shaped body
-# https://docs.google.com/presentation/d/1Bnaqb-zPWwU9d1gUB_AK_lo9aQqEHI837P5FWwwJhno/edit#slide=id.g256fb254ae7_0_44 
+# https://docs.google.com/presentation/d/1Bnaqb-zPWwU9d1gUB_AK_lo9aQqEHI837P5FWwwJhno/edit#slide=id.g256fb254ae7_0_44
 I_BODY = {
     "id": "I",
     "x": 3.5,
@@ -146,5 +146,3 @@ I_BODY = {
     "sliding_friction": sliding_friction,
     "ineasticity": inelasticity,
 }
-
-
