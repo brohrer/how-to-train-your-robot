@@ -2,61 +2,93 @@
 % \section*{}
 \label{sec:intro}
 
-A robot learning to interpret its sensors and world, finds that the
+A robot learning to navigate the world finds that the
 combination of
-certain sensors gives more information than either individually.
-The combination of x- \textit{and} y-position sensors tells more about
-the when to watch for obstacles than either on its own.
+certain sensors gives more information than either of them alone.
+The combination of $x$- \textit{and} $y$-position tells more about
+when to watch for obstacles than either variable on its own.
 The speed \textit{and} position of arm tells more about what shoulder
-torque needs to be generated that either on its own. Often these cases
-of sensor cooperation can be added manually, through human designers'
-knowledge of the system, but in cases where the robot is too complex
-for this, they can be learned. This is the goal of 
-\textbf{Agglomerative Continual Dimensional Clustering (ACDC)}.
+torque needs to be generated than either variable on its own.
+These cases
+of sensor interaction can be hard coded manually. Human designers
+often exploit their knowledge of the system to do this
+via feature engineering,
+but in cases where the robot system is too complex
+to intuit these useful interactions, they can be learned.
+Automatically creating these predictive features is the goal of 
+the \textbf{Ziptie} algorithm.
 
-ACDC makes a non-traditional assumption that all signals are
-\textbf{\hyperref[sec:fuzzy]{Fuzzy Categorical variables}}, that is,
-that their values vary between
-zero and one, inclusive. It assumes a fixed number of signals that are
-received at discrete time intervals.
-
-equation n-dim
-
-ACDC the n dimensions of the signal can also be conceived as n separate 
-\textbf{cables}, each carrying a single signal (as they often are in robots). The
+Ziptie makes a non-traditional assumption that all sensor signals,
+$\alpha_i$, (otherwise known as \textbf{features}) are
+\textbf{\hyperref[sec:fuzzy]{Fuzzy Categorical variables}} with
+$\alpha_i \in [0, 1]$. It also assumes that
+a fixed number of features, $n$, are
+received at discrete time intervals in a vector $\mathbf{A}$.
+\begin{equation}
+\mathbf{A} = (\alpha_1, \alpha_2, \alpha_3, ..., \alpha_n)
+\end{equation}
+The $n$ features of the sensor data
+can be imagined as $n$ separate 
+\textbf{cables}, $\phi_i$, each carrying a single signal
+(as they often are in robots). The
 challenge of clustering these cables into informative combinations
-can then be conceived as creating \textbf{bundles} of cables, as with
-a \textbf{ziptie}.
+can then be imagined as creating \textbf{bundles} of cables, $\phi_{ij}$,
+as with a ziptie.
 
-A new bundle are created when the \textbf{agglomeration energy}
-between two cables exceeds a threshold. Agglomeration energy is the
-accumulated \textbf{coactivation} of the cable pair, where the
+A new bundle is created when the \textbf{agglomeration energy},
+$\gamma_{ij}$
+between two cables exceeds a threshold, $C_\gamma$. Agglomeration energy is the
+accumulated \textbf{coactivation}, $\kappa_{ij}$, of the cable pair, where the
 coactivation at each time step is given by the product of their two
 activities.
-
-% equation coactivity_{ab} = activity_a * activity_b
-
-Once bundle ab is created, it gets first dibs at representing any
-signal carried on cable a and cable b.
-
-% equation bundle_{ab}_activity = minimum(activity_a, activity_b)
-
-It's member cables retain only the residual signal.
-
-% equation activity_a_residual = activity_a - bundle_{ab}_activity
-% equation activity_b_residual = activity_b - bundle_{ab}_activity
-
-Bundles' activities will also remain on the interval [0, 1].
-They can also be coactive with cables and with other bundles.
+\begin{equation}
+\kappa_{ij} = \alpha_i \alpha_j
+\end{equation}
+Once bundle $\phi_{ij}$ is created, it gets first dibs at representing any
+amount of signal carried on both cables $\phi_i$
+and $\phi_j$.
+\begin{equation}
+\alpha_{ij} = \min(\alpha_i, \alpha_j)
+\end{equation}
+The member cables of $\phi_{ij}$  retain only the residual signal.
+\begin{eqnarray}
+\alpha_{\hat{i}} &=& \alpha_i - \alpha_{ij}\\
+\alpha_{\hat{j}} &=& \alpha_j - \alpha_{ij}
+\end{eqnarray}
+This approach constrains bundles' activities to remain on [0, 1] as well.
+Bundles can be coactive with cables and with other bundles.
 Any cable-cable, cable-bundle, or bundle-bundle pair whose
-agglomeration energy exceeds the chosen threshold nucleate
+agglomeration energy exceeds $C_\gamma$ will nucleate
 a new bundle.
 
-The number of cables in a bundle and the total number of bundles are
-not limited. Given sufficient time they can continue to increase.
-This can be limited by a \textbf{stopping condition}, such as
+As Ziptie continues to operate on the stream of cable activities,
+the total number of bundles will continue to grow. As bundles are 
+bundled again
+together, the number of cables in the largest bundles will grow too.
+These can be limited from growing too large by introducing
+a \textbf{stopping condition}, such as
 a maximum number of bundles or fixed number of time steps.
 
+The rest of this paper attempts to answer the questions you might have:
+\begin{itemize}
+
+\item{What's \textbf{\hyperref[sec:background]{all this}} about?}
+
+\item{What is Ziptie
+\textbf{\hyperref[sec:applications]{good for}?}}
+
+\item{How does the \textbf{\hyperref[sec:algorithm]{Ziptie}}
+algorithm work in practice?}
+
+\item{What are \textbf{\hyperref[sec:fuzzy]{Fuzzy Categorical variables}}
+and why do they matter?}
+
+\item{How is Ziptie related to what
+\textbf{\hyperref[sec:bio]{biological brains}} do?}
+
+\item{How can I use \textbf{\hyperref[sec:code]{Ziptie code}}?}
 
 
-% \end{abstract
+\end{itemize}
+
+% \end{abstract}

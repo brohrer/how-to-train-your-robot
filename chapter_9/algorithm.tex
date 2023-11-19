@@ -1,0 +1,18 @@
+\section{How the Ziptie Algorithm Works}
+\label{sec:algorithm}
+
+How it works, step-by-step.
+
+\subsection{Why coactivation matters}
+\label{subsec:whycoactivation}
+
+Feature agglomeration was mentioned in Section~/ref{subsec:featureagg}.
+Feature agglomeration groups features based on how often
+they have similar values. It tries to group nearly identical
+features first. Ziptie on the other hand groups features based on how
+often they are co-active. (When they are both zero, that doesn't
+increase their similarity.) This creates groups of features that
+are simultaneously active, things that
+happen at the sime time. While this will capture features that are identical,
+it will also capture unrelated features whose co-occurence gives
+valuable information.
