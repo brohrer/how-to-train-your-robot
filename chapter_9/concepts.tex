@@ -1,6 +1,130 @@
 \section{Concepts and Related Work}
 \label{sec:background}
 
+\subsection{Feature Learning}
+\label{subsec:featurelearning}
+
+Feature engineering is the practice of cleverly combining several features
+to get at information that none of them could provide on their own.
+For example, the $x$- and $y$-velocities of an object can be combined
+to give its overall speed, or specific
+patterns in a $3 \times 3$ collection of
+pixels can be used to detect edges.
+Feature learning, also known as \textbf{
+\href{https://en.wikipedia.org/w/index.php?title=Feature_engineering&section=3}
+{automated feature engineering}}, is when features are generated through
+heuristics or the result of algorithms.
+There are a collection of
+\textbf{
+\href{https://en.wikipedia.org/w/index.php?title=Feature_engineering&section=5}
+{open source tools}} for this, which largely
+focus on time series data sets.
+
+Feature learning is also referred to as \textbf{
+\href{https://en.wikipedia.org/wiki/Feature_learning}{representation learning}}.
+\textbf{\href
+{https://en.wikipedia.org/w/index.php?title=Feature_learning&section=6}
+{Principal components analysis}} (PCA) is the poster child for unsupervised
+representation learning. PCA resembles Ziptie in that it finds combinations
+of features that tend to co-occur. PCA is focused on \textit{dimensionality
+reduction} in that its goal is to reduce the total number of features used
+to a small set that distills out most of the informtion in the data.
+
+\subsection{Sparse Coding}
+\label{subsec:sparsecoding}
+
+Ziptie is an example of specific variant of feature learning called
+\textbf{\href{https://en.wikipedia.org/wiki/Sparse_dictionary_learning}
+{sparse coding}} or \textbf{sparse dictionary learning}, a family of methods
+for learning concise ways to represent data. 
+
+The goal of sparse coding is to represent an observation
+using as few features as possible.
+To do this, sparse coding methods often learn an
+overcomplete dictionary of basis functions.
+(Extending the analogy of a dictionary of the English language,
+the basis functions are the words.
+Overcomplete means that
+there is more than one combination of words that express the same idea.
+Overcompleteness allows for sparse representation, because you
+can choose the represent the idea concisely, using the representation
+with the fewest words.)
+
+A culinary example of sparse coding is ``Moose Tracks" flavor ice cream.
+It could just as accurately be described as ``vanilla with small
+peanut butter cups and fudge ripples". The name ``Moose Tracks" is
+superfluous; it means exactly the same thing.
+Its existence shows overcompleteness in the dictionary
+of ice cream flavor names. But it allows for a concise representation.
+
+Another example of sparse coding shows up in music. As seen in
+Figure~\ref{fig:chords}, combinations of several keys (features)
+can be represented as chords (basis functions). There are many more
+possible chords than keys. Moving to a chord representation does not
+make a shorter dictionary than working with keys directly. But what
+it buys us is the ability to represent a collection of several keys with
+a single feature instead of having to enumerate all the keys involved. 
+
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=3.25in]{images/chords.png}}
+\caption{Piano chords as a sparse coding}
+\label{fig:chords}
+\end{center}
+\vskip -0.2in
+\end{figure}
+
+\subsection{$\ell^0$ vs $\ell^1$ Norms}
+\label{subsec:sparsenorms}
+
+In its purest form, the goal of sparseness is have as many features be
+zero as possible. An ideal sparse coding would be able to represent each
+set of inputs with exactly one feature. The number of non-zero features
+is also called the $\ell^0$ norm. An $\ell^0$ sparse coding will
+do it's best to represent each input with as few features as possible.
+
+Unfortunately, minimizing the $\ell^0$ norm for feature representation is hard.
+Our regular machine learning bag of tricks for optimizing things
+requires differentiability, and the $\ell^0$ norm is not differentiable. The
+count of non-zero features changes sharply by one, even if the feature
+value only changes from 0 to 0.001. And as that feature value changes from
+0.001 to 0.1 to 10, the $\ell^0$ norm doesn't change at all.
+
+As any experienced algorithms person will tell you, when presented
+with a problem you can't solve, just ignore it and solve a different one.
+In sparse coding, if ``sparse" is redefined to minimizing the $\ell^1$ norm,
+instead of the $\ell^0$ norm, then it becomes differentiable, and can be
+solved with familiar tools, including backpropagation and neural networks.
+
+However, all hope is not lost. There is a whole field of optimization
+for hard problems like this. (If you're trying to hire a person to do this
+their past job titles will probably be Operations Research, rather than
+Machine Learning.)
+A \href{https://hal.science/hal-01965904/document}{2018 paper}
+\footnote{Liu, Y., Canu, S., Honeine, P., Ruan., S. (2018)
+K-SVD with a real L0 optimization: application
+to image denoising.
+Proc. 28th IEEE workshop on Machine Learning for Signal Processing (MLSP),
+Aalborg, Denmark. pp.1 - 6.}
+described a method for $\ell^0$ sparse coding using
+one of these optimization methods (mixed integer quadratic programming).
+
+I applaud them for tackling the honest-to-goodness sparse coding problem.
+The only downside for practical use is that it is quite computationally
+expensive. The authors don't say exactly how expensive, but when
+they describe it as an Achilles' heel, that suggests it's not quite
+ready for real time applications.
+
+Another way to make sparse optimization easier to solve is to keep the
+$\ell^0$ norm, but to relax the minimization requirement. What if we had
+a method that was just pretty OK? What if it didn't necessarily
+find the way to use the absolute minimum number of features each time,
+but found a way to get kind of close? And what it it only took one-millionth
+of the computation? This describes the path of heuristic approximation,
+or to use less floofed-up language, a hack. The hack that Ziptie uses is
+agglomerative clustering.
+
 \subsection{Agglomerative Clustering}
 \label{subsec:agglomeration}
 
@@ -38,37 +162,6 @@ with multiple cluster membership.
 \vskip -0.2in
 \end{figure}
 
-\subsection{Feature Learning}
-\label{subsec:featurelearning}
-
-Feature engineering is the practice of cleverly combining several features
-to get at information that none of them could provide on their own.
-For example, the $x$- and $y$-velocities of an object can be combined
-to give its overall speed, or specific
-patterns in a $3 \times 3$ collection of
-pixels can be used to detect edges.
-Feature learning, also known as \textbf{
-\href{https://en.wikipedia.org/w/index.php?title=Feature_engineering&section=3}
-{automated feature engineering}}, is when features are generated through
-heuristics or the result of algorithms.
-There are a collection of
-\textbf{
-\href{https://en.wikipedia.org/w/index.php?title=Feature_engineering&section=5}
-{open source tools}} for this, which largely
-focus on time series data sets.
-
-Feature learning is also referred to as \textbf{
-\href{https://en.wikipedia.org/wiki/Feature_learning}{representation learning}}.
-\textbf{\href
-{https://en.wikipedia.org/w/index.php?title=Feature_learning&section=6}
-{Principal components analysis}} (PCA) is the poster child for unsupervised
-representation learning. PCA resembles Ziptie in that it finds combinations
-of features that tend to co-occur. PCA is focused on \textit{dimensionality
-reduction} in that its goal is to reduce the total number of features used
-to a small set that distills out most of the informtion in the data.
-
-\subsection{Feature Agglomeration}
-\label{subsec:featureagg}
 
 On its surface,
 scikit-learn's
@@ -85,58 +178,6 @@ It uses agglomerative clustering to group
 features into larger groups of features. However, it is different in
 some important ways, which are illustrated in
 Section~\ref{subsec:whycoactivation}.
-
-\subsection{Sparse Coding}
-\label{subsec:sparsecoding}
-
-Ziptie is actually an example of
-\textbf{\href{https://en.wikipedia.org/wiki/Sparse_dictionary_learning}
-{sparse coding}} or \textit{sparse dictionary learning}, a family of methods
-for learning concise ways to represent data. 
-
-The goal of sparse coding is to represent using as few features as possible.
-To do this, sparse coding methods often learn an
-\textit{overcomplete dictionary of basis functions}.
-Basis functions are combinations of features, the elements of a
-dictionary that the sparse coding method uses to re-express each
-observation.
-Overcomplete means that the method learns several ways to express
-the same observation. This allows it the sparsest one, the one with
-the fewest non-zero elements.
-
-A culinary example of sparse coding is "Moose Tracks" flavor ice cream.
-It could just as accurately be described as "vanilla with small
-peanut butter cups and fudge ripples". The name "Moose Tracks" is
-superfluous; it means exactly the same thing.
-Its existence shows overcompleteness in the dictionary
-of ice cream flavor names. But it allows for concise representation,
-a sparse coding of the 
-
-\begin{figure}[ht]
-\vskip 0.2in
-\begin{center}
-\centerline{\includegraphics[width=3.25in]{images/chords.png}}
-\caption{Piano chords as a sparse coding}
-\label{fig:chords}
-\end{center}
-\vskip -0.2in
-\end{figure}
-
-\subsection{$\ell^0$ vs $\ell^1$ Norms}
-\label{subsec:sparsenorms}
-
-L0 sparse coding
-
-Computer vision, anomaly detection
-https://arxiv.org/abs/2104.04289
-
-L0-KSVD
-https://hal.science/hal-01965904/document
-
-Optimization
-Mixed integer quadratic programming (computationally expensive)
-Vs
-Greedy
 
 \subsection{Continual Learning}
 \label{subsec:continual}
@@ -184,8 +225,8 @@ of several families of methods, as in Figure~\ref{fig:venn}.
 \end{figure}
 
 \begin{itemize}
+\item{$\ell^0$ Sparse Coding}
 \item{Agglomerative Clustering}
 \item{Multi-member Clustering}
 \item{Online Learning}
-\item{Sparse Coding}
 \end{itemize}
