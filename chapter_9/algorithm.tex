@@ -3,6 +3,44 @@
 
 How it works, step-by-step.
 
+
+For the authoritative source, I've
+\href{https://gitlab.com/brohrer/ziptie/-/blob/main/ziptie/algo.py}{liberally commented the code}.
+
+\subsection{Bundling}
+\label{subsec:algobundling}
+
+Once all the data has been fuzzified (transformed into a big collection
+of fuzzy variables), it gets fed into a Ziptie.
+There inputs that tend to be active at the same time get
+clustered together. The math behind this is essentially counting.
+
+The clustering in zipties is agglomerative.
+To use the metaphor of cables carrying signals,
+each input is like a cable. The sequence of values it takes is its signal.
+Sequential values can be related, as in time series data like
+audio or stock prices.
+Or they can be independent, as in image classification benchmarks.
+
+The ziptie algorithm finds cables that tend to be co-active, that is,
+they tend to be positively valued at the same time.
+Note that this is different than correlation.
+Correlation is also strengthened when two signals are inactive at the same time.
+
+The co-activation between two cables for a set of inputs is the product
+of their two input values. Because all inputs come from fuzzy categorical variables,
+they are known to be between zero and one, and so the product of any two inputs
+will also be between zero and one. If a cable is inactive and has a value of zero,
+then its co-activity with all others is zero.
+
+To find patterns in activity, every channel's cables co-activity with every
+other cable is calculated for each set of inputs, and they are summed over
+time to find trends. Once the aggregated co-activity between a pair of
+cables crosses the threshold, those two cables become bundled,
+as if bound together by a plastic zip tie. This process continues,
+and every time a cable pair exceeds the co-activity threshold for
+bundle creation, a new bundle is created.
+
 \subsection{Why coactivation matters}
 \label{subsec:whycoactivation}
 
@@ -16,3 +54,47 @@ are simultaneously active, things that
 happen at the sime time. While this will capture features that are identical,
 it will also capture unrelated features whose co-occurence gives
 valuable information.
+
+
+\subsection{Bundle activities}
+\label{subsec:algobundle}
+
+The output of a ziptie is the activity of each of its bundles.
+A bundle's activity is calculated by taking the minimum value of the cables
+that contribute to it. Because of this, bundle activities are also constrained
+to be between zero and one. This makes them behave just like input cables.
+And in fact, after they are created, a ziptie treats its bundles like additional
+input cables, and find their co-activity with other cables.
+In this way bundles can grow. Two cables can become bundled and then one by one
+additional cables can be added creating a many-cable bundle of coactive cables.
+
+The other quirk of calculating bundle activities is that after
+the minimum value of a bundles cables is found and assigned
+to the bundle activity, that value is subtracted from that
+of each of the cables. In this way, a cable's value is a finite
+quantity that can only contribute once to a bundle's activity.
+After it has contributed to a bundle, its activity is reduced by that amount.
+Because of this, the order in which bundle activities are calculated
+is important. The most recently created bundles' activities are calculated first.
+These will be the bundles with the greatest number of cables.
+They will be the most complex and if active, account for the most activity with a single value.
+
+After all bundle activities have been calculated, a cable’s remaining
+activity is available for contributing to co-activity calculations.
+This prevents activity from getting counted multiple times
+and avoids pathological cases where similar features get created repeatedly.
+
+Zipties continue to grow new bundles indefinitely. If desired, you can set up an external
+check and stop creating new bundles once you have as many as you want.
+
+\subsection{Multiple layers}
+\label{subsec:algolayers}
+
+Because bundle activities are also valued between zero and one, the outputs
+of one zipie can serve as the inputs to another. The bundles created
+in one ziptie can serve as the cables, the inputs, to the next.
+
+This allows for hierarchical clustering. Low level cables can be bound into bundles
+in the first zipties, and these can then be bound into yet more
+complex bundles in the next. This process can be repeated as many times as you like.
+

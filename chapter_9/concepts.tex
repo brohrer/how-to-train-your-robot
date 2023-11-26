@@ -162,7 +162,6 @@ with multiple cluster membership.
 \vskip -0.2in
 \end{figure}
 
-
 On its surface,
 scikit-learn's
 \href{https://scikit-learn.org/stable/auto_examples/cluster/plot_digits_agglomeration.html#sphx-glr-auto-examples-cluster-plot-digits-agglomeration-py}
@@ -175,9 +174,26 @@ Scikit-learn: Machine Learning in Python. Feature agglomeration.
 \textit{JMLR}, 12, 2825–2830.}
 is similar to Ziptie.
 It uses agglomerative clustering to group
-features into larger groups of features. However, it is different in
-some important ways, which are illustrated in
+features into larger groups of features, but it is different in
+some important ways. Feature agglomeration doesn't allow for
+multiple membership, and its clustering criterion is based on
+correlations, rather than coactivations. More about why this matters in
 Section~\ref{subsec:whycoactivation}.
+
+Ziptie bundling process is actually more similar to
+\href{https://en.wikipedia.org/wiki/Byte_pair_encoding}
+{byte pair encoding} (BPE),
+where frequently co-occurring characters get represented
+and replaced by a unique code
+of their own. The process is repeated until even long strings that
+occur often are represented by a single byte.
+The most important difference between Ziptie and BPE is that
+BPE operates on sequences of symbols (one-hot, binary categorical variables)
+and Ziptie extends the method to operate on sets of fuzzy variables.
+The other minor difference is that BPE designed to work with a fixed
+size batch of data. (There is some fun detail in
+\href{http://www.pennelynn.com/Documents/CUJ/HTML/94HTML/19940045.HTM}
+{the original writeup} from 1984.)
 
 \subsection{Continual Learning}
 \label{subsec:continual}
@@ -194,12 +210,12 @@ Ziptie is a specific flavor of continual learning called
 \textbf{\href{https://en.wikipedia.org/wiki/Online_machine_learning}{online learning}}
 where the algorithm does a small update after every new data point is collected.
 Ziptie also falls into the niche category of \textit{unsupervised}
-continual learning like
+continual learning like this
 \footnote{Ashfahani, A. and Pratama, M. (2021).
 Unsupervised Continual Learning in Streaming Environments. arXiv.
 \href{https://arxiv.org/pdf/2109.09282.pdf}{https://arxiv.org/pdf/2109.09282.pdf}
 }
-and
+and this
 \footnote{Rao, D., Visin, F., Rusu, A. A., Teh, Y. W., Pascanu, R., and Hadsell, R.
 (2019) Continual Unsupervised Representation Learning.
 Paper presented at 33rd Conference on Neural Information Processing Systems

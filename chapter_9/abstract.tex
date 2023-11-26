@@ -2,6 +2,8 @@
 % \section*{}
 \label{sec:intro}
 
+\textbf{tl;dr: Byte pair encoding for fuzzy variables}
+
 A robot learning to navigate the world finds that the
 combination of
 certain sensors gives more information than either of them alone.
@@ -18,9 +20,12 @@ to intuit these useful interactions, they can be learned.
 Automatically creating these predictive features is the goal of 
 the \textbf{Ziptie} algorithm.
 
-Ziptie makes a non-traditional assumption that all sensor signals,
+(If you want to skip the How and Why of it, jump to
+\textbf{\hyperref[sec:code]{using the Ziptie library}}.)
+
+Ziptie makes a uncommon assumption that all sensor signals,
 $\alpha_i$, (otherwise known as \textbf{features}) are
-\textbf{\hyperref[sec:fuzzy]{Fuzzy Categorical variables}} with
+\textbf{\hyperref[sec:fuzzy]{Fuzzy variables}} with
 $\alpha_i \in [0, 1]$. It also assumes that
 a fixed number of features, $n$, are
 received at discrete time intervals in a vector $\mathbf{A}$.
@@ -69,26 +74,23 @@ These can be limited from growing too large by introducing
 a \textbf{stopping condition}, such as
 a maximum number of bundles or fixed number of time steps.
 
-The rest of this paper attempts to answer the questions you might have:
-\begin{itemize}
+% The rest of this paper attempts to answer the questions you might have:
+% \begin{itemize}
 
-\item{What's \textbf{\hyperref[sec:background]{all this}} about?}
+% \item{What's \textbf{\hyperref[sec:background]{all this}} about?}
 
-\item{What is Ziptie
-\textbf{\hyperref[sec:applications]{good for}?}}
+% \item{What are \textbf{\hyperref[sec:fuzzy]{Fuzzy variables}}
+% and why do they matter?}
 
-\item{How does the \textbf{\hyperref[sec:algorithm]{Ziptie}}
-algorithm work in practice?}
+% \item{How does the \textbf{\hyperref[sec:algorithm]{Ziptie}}
+ %algorithm work in practice?}
 
-\item{What are \textbf{\hyperref[sec:fuzzy]{Fuzzy Categorical variables}}
-and why do they matter?}
+% \item{How can I use \textbf{\hyperref[sec:code]{Ziptie code}}?}
 
-\item{How is Ziptie related to what
-\textbf{\hyperref[sec:bio]{biological brains}} do?}
-
-\item{How can I use \textbf{\hyperref[sec:code]{Ziptie code}}?}
+% \item{How is Ziptie related to what
+% \textbf{\hyperref[sec:bio]{biological brains}} do?}
 
 
-\end{itemize}
+% \end{itemize}
 
 % \end{abstract}

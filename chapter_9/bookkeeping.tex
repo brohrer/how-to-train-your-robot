@@ -1,0 +1,171 @@
+\section{Bookkeeping}
+\label{sec:bookkeeping}
+
+\subsection{Versions}
+\label{subsec:versions}
+
+The \textbf{\href{
+https://codeberg.org/brohrer/how-to-train-your-robot/raw/branch/main/chapter_9/ziptie.pdf}
+{latest version}}
+of this document and all the files needed to
+render it are in \textbf{\href{
+https://codeberg.org/brohrer/how-to-train-your-robot/src/branch/main/chapter_9}
+{this Codeberg repository}}. There's a backup copy in \textbf{
+\href{https://github.com/brohrer/how-to-train-your-robot/tree/main/chapter_9}
+{this repository on GitHub}}.
+
+I don't expect this doc to ever be done. I'm always learning new things,
+or thinking of a better way to explain something, or I do a new
+piece of work I can't help myself from including. And there's always
+one more bug.
+Since it's a git repository, you are free to browse past commits to watch
+the evolution, but I'll try to keep a running record of important updates
+here.
+
+\begin{itemize}
+\item{\textbf{\href{}{November 26, 2023}}. Rough outline of how Ziptie works
+and how it's related to the rest of the algorithmic world.}
+\end{itemize}
+
+\subsection{History}
+\label{subsec:history}
+
+Ziptie didn't start life in its current form. It actually has a long
+and very boring history.
+
+\begin{itemize}
+
+\item{\textbf{2011}. As the method was taking shape, I published a 
+flurry of posters and write-ups in small conferences
+\footnote{
+Rohrer, B., Morrow, J.D., Rothganger, F., Xavier, P. (2011)
+\textit{BECCA: A functional model of the human brain
+for arbitrary task learning}.
+Grand Challenges in Neural Computation 2011.
+% \href{https://github.com/brohrer/publications/blob/main/Rohrer11BeccaFunctionalModel.pdf}
+% {https://github.com/brohrer/publications/blob/main/Rohrer11BeccaFunctionalModel.pdf}
+}
+\footnote{
+Rohrer, B. (2011) \textit{An implemented architecture for
+feature creation and general reinforcement learning}.
+Workshop on Self-Programming in AGI Systems, AGI 2011.
+% \href
+% {https://github.com/brohrer/publications/blob/main/Rohrer11ImplementedArchitectureFeature.pdf}
+% {https://github.com/brohrer/publications/blob/main/Rohrer11ImplementedArchitectureFeature.pdf}
+}
+\footnote{
+Rohrer, B. (2011) \textit{A developmental agent for learning features,
+environment models, and general robotics tasks}. ICDL/Epirob 2011.
+% \href
+% {https://github.com/brohrer/publications/blob/main/Rohrer11DevelopmentalAgentLearning.pdf
+% {https://github.com/brohrer/publications/blob/main/Rohrer11DevelopmentalAgentLearning.pdf}
+}
+\footnote{
+Rohrer, B. (2011) \textit{Biologically inspired feature creation
+for multi-sensory perception}. BICA 2011.
+% \href{
+% {https://github.com/brohrer/publications/blob/main/Rohrer11BiologicallyInspiredFeature.pdf}
+% {https://github.com/brohrer/publications/blob/main/Rohrer11BiologicallyInspiredFeature.pdf}
+}
+\footnote{
+Rohrer, B. (2012) \textit{BECCA: Reintegrating AI for
+natural world interaction}. AAAI Spring Symposium on Designing
+Intelligent Robots: Reintegrating AI 2012.
+% \href
+% {https://github.com/brohrer/publications/blob/main/Rohrer12BeccaReintegratingAi.pdf}
+% {https://github.com/brohrer/publications/blob/main/Rohrer12BeccaReintegratingAi.pdf}
+}
+}
+
+\item{\textbf{2012-01-14}.
+The oldest version of the code I can find.
+At this point Ziptie was called Grouper
+and was written in MATLAB. A lot of details have changed since this point,
+but the acculumulation of coactivation as a clustering mechanism has not.
+\href{https://www.linkedin.com/in/mattchapmansoftwareengineer/}{Matt Chapman}
+was an early collaborator and helped me transition the code from the private
+research repo I'd been developing in to something more public.
+}
+
+\item{\textbf{2012-02-20}.
+\href{https://github.com/alito/becca/commit/6eea91447608a1a6280ce915a26a18a85a57ef1c#diff-2106149c513c2a9fb07b17281f3830e992856b0c553b348f398b5d0fc3f96bc1}
+{grouper ported to Python}
+\href{https://www.linkedin.com/in/alejandro-dubrovsky-90b9b833/}{Alejandro Dubrovsky} (alito)
+becca repo
+}
+
+2012-04-20
+\href{https://github.com/alito/becca/commit/dae6fa355c6bdcf9b5e2863d3b93dafa4fc4d5be#diff-2106149c513c2a9fb07b17281f3830e992856b0c553b348f398b5d0fc3f96bc1}
+{referred to coactivation as coactivation}
+
+2012-06-26
+\href{https://github.com/alito/becca/commit/6e7f968f283e287917cbbc9520297b833ad5d3aa#diff-e521b0d7fc82aa487ff7542d8a2672c0074ee1ae38705a48676fbad625e39bed}
+{grouper is now perceiver}
+
+2013-03-16
+\href{https://github.com/alito/becca/commit/dbb0374b164b6a5725b5bdf7d9eb208ddd82f855#diff-9338f7a12f369b96ae4414274afd08ce028c84758d252e683d937e6a56c48c9a}
+{perceiver is now map}
+
+2013-05-09
+\href{https://github.com/alito/becca/blob/ba07dde43f5a24fb35c1eabcc756a2cdc799287d/src/scripts/agent/ziptie.py}
+{map is now ziptie}
+
+2015-01-13
+\href{https://github.com/brohrer/robot-brain-project/blob/bc41b26373290acb6be0c9069be6ac6f3485b106/core/ziptie.py}
+{moved to robot-brain-project}
+
+2015-06-10
+\href{https://github.com/brohrer/robot-brain-project/commit/3815c5a10cf256e9f61eeec1a34f3b60f55d107f#diff-f47908520ba430339ff71c0fb1052bc986dafdd875ad83c9083ed4687f469945}
+{started accelerating with Numba}
+
+2018-10-01
+\href{https://github.com/brohrer/robot-brain-project/blob/53e2b52ab10e4ed7f92b3d488c49a6138d29a878/becca/ziptie.py}
+{last commit on GitHub robot-brain-project repo}
+
+pick up GitLab 
+access?
+
+2020-11-08
+ziptie repo in GitHub
+https://github.com/brohrer/ziptie
+
+\end{itemize}
+
+\subsection{Citations}
+\label{subsec:citations}
+
+If you end up using Ziptie in your work, give it a shout out.
+Here's an APA example you can copy and paste. (You may have to fiddle with
+the dates.)
+
+Rohrer, B. (2023). Ziptie: Learning Useful Features [White Paper].
+Retrieved \today, from
+\href{https://tyr.fyi/ziptie}{https://tyr.fyi/ziptie}
+
+If you're so inclined, drop me a note too (brohrer@gmail.com).
+I love to hear about how
+Ziptie is being used. It gives me ideas for how to make it better.
+
+\subsection{Licensing}
+\label{subsec:license}
+
+The text, figures, equations, and methods described in this paper
+are published under the CC0 "No Rights Reserved" license.
+From the
+\href{https://creativecommons.org/public-domain/cc0/}{Creative Commons} description,
+CC0 "enables scientists, educators,
+artists and other creators and owners of copyright- or database-protected
+content to waive those interests in their works and thereby place them as
+completely as possible in the public domain, so that others may freely
+build upon, enhance and reuse the works for any purposes without restriction
+under copyright or database law."
+
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=1.0in]{images/cc-zero.png}}
+\label{fig:cc0}
+\end{center}
+\vskip -0.2in
+\end{figure}
+
