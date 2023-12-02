@@ -1,0 +1,61 @@
+import time
+import numpy as np
+from numba import njit, prange
+
+'''
+@njit
+def matmul(A, B, C):
+    n_row, n_col = C.shape
+    n_mid = A.shape[1]
+    for i in range(n_row):
+        for j in range(n_col):
+            for k in range(n_mid):
+                C[i, j] += A[i, k] * B[k, j]
+'''
+# @njit(parallel=True)
+def matmul(A, B, C):
+    n_row, n_col = C.shape
+    n_mid = A.shape[1]
+    for i in prange(n_row):
+        for j in prange(n_col):
+            for k in prange(n_mid):
+                C[i, j] += A[i, k] * B[k, j]
+
+n_reps = 100
+
+# Numpy: 362 ms vs njit: 780 ms
+# prange 238 ms
+n_rows = 875
+n_mid = 879
+n_cols = 877
+
+# Numpy 3.25 s vs njit 20.5 s
+# n_rows = 1675
+# n_mid = 1679
+# n_cols = 1677
+
+A = np.random.sample((n_rows, n_mid))
+B = np.random.sample((n_mid, n_cols))
+C = np.random.sample((n_rows, n_cols))
+
+matmul(A, B, C)
+
+print("last", C[-1, -1])
+
+total_time = 0
+for i_rep in range(n_reps):
+    # A = np.random.sample((n_rows, n_mid))
+    # B = np.random.sample((n_mid, n_cols))
+
+    start = time.time()
+
+    matmul(A, B, C)
+    # C = A @ B
+
+    end = time.time()
+    total_time += end - start
+
+    print("last", C[-1, -1])
+
+print("total time", total_time)
+print("average time", total_time / n_reps)

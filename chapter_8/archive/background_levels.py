@@ -1,3 +1,0 @@
-from frequency_visualization import animate_frequency_response
-
-animate_frequency_response(interval=2000, window=10000)
